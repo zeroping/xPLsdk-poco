@@ -1,0 +1,3 @@
+// the configured options and settings
+#define xplsdk_VERSION_MAJOR @xplsdk_VERSION_MAJOR@
+#define xplsdk_VERSION_MINOR @xplsdk_VERSION_MINOR@
