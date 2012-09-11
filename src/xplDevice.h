@@ -217,37 +217,6 @@ public:
 	 */
 	bool SendMsg( xplMsg* _pMsg );
 
-    /**
-     * Gets the next xPL message from the queue of received messages.
-     * This method should be called when the event returned by GetMsgEvent
-     * is in a signalled state.  The event will only become unsignalled 
-     * when no more messages are waiting.
-     * <p>
-     * When you are finished with the message, it should be destroyed by
-     * calling xplMsg::Release.
-     * @return A pointer to an xPL message, or NULL if no messages were
-     * waiting.
-     */
-    xplMsg* GetMsg();
-    
-   	/**
-	 * Gets an event that when signalled, indicates that an xPL message
-     * has been received.  The message(s) can be obtained through a call(s) 
-     * to GetMsg.  
-     * <p>
-     * When the application is finished using this event, it 
-     * must be destroyed with a call to CloseHandle.
-     * @return A handle to an event that is signalled when at least one 
-     * message has been received.
-	 */
-    Poco::Event* GetMsgEvent(){ return m_hMsgRx; }
-
-   	/**
-	 * Gets an event that when signalled, indicates that the config
-     * items have changed.
-     * @return A handle to an event that is signalled when the config items have changed
-	 */
-    Poco::Event* GetConfigEvent(){ return m_hConfig; }
 
 	/**
 	 * Adds a config item to the device.  Each item represents a variable
@@ -359,7 +328,7 @@ private:
 	 * @param _pContext callback context.  A pointer to the xplDevice 
 	 * that registered this callback.
 	 * @return True if the message has been handled.
-	 * @see HandleMsg, RegisterMsgCallback, pfnMsgCallback
+   * @see HandleMsgForUs, RegisterMsgCallback, pfnMsgCallback
 	 */
 	static bool MsgCallback( xplMsg* _pMsg, void* _pContext );
 
@@ -390,7 +359,7 @@ private:
 	 * @return True if the message was dealt with.
 	 * @see MsgCallback
 	 */
-	bool HandleMsg( xplMsg* _pMsg );
+  bool HandleMsgForUs( xplMsg* _pMsg );
 
 	/**
 	 * Configures the xplDevice.  Sets the device parameters according to 
@@ -472,14 +441,9 @@ private:
 	bool					m_bWaitingForHub;			// True if we haven't yet detected the presence of the hub
 
 	Poco::Thread					m_hThread;					// Handle to the xplDevice thread
-	Poco::Event*					m_hRxInterrupt;				// Event that is signalled to interrupt the device thread waiting for messages.
-	Poco::Event*					m_hActive;					// Manual-reset event that is set to not-signalled when the device thread should be paused.
-	Poco::Event*                  m_hMsgRx;					// Event that is signalled when there is a message available.
-	Poco::Event*                  m_hConfig;					// Event that is signalled when the config items have been updated.
-    Poco::Mutex		m_criticalSection;			// Used to serialise access to m_txBuffer.
-	vector<xplMsg*>			m_txBuffer;					// Stores messages until they can be sent by the device thread.
-    deque<xplMsg*>          m_rxBuffer;					// Store messages that have been received.
-    bool					m_bPaused;					// Set to true when device activity is paused.
+	Poco::Event*          m_hRxInterrupt;       // Event that is signalled to interrupt the device thread waiting for messages.
+   Poco::Mutex		m_criticalSection;			// Used to serialise access to m_txBuffer.
+ 
 	bool					m_bExitThread;				// If true, the device thread should exit.
 
 	bool					m_bConfigRequired;			// True if configuration via xPLHal is required

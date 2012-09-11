@@ -34,6 +34,7 @@
 #include "xplCore.h"
 #include "xplComms.h"
 #include <iostream>
+#include <Poco/Thread.h>
 
 using namespace xpl;
 
@@ -51,16 +52,18 @@ void xplComms::Destroy
 	xplComms* _pComms 
 )
 {
-    cout << "xplComms::Destroy\n";
+    cout << "xplComms::Destroy in thread " << Thread::currentTid() << " \n";
 	if( NULL == _pComms )
 	{
-    cout << "pcomms alread released\n";
+    cout << "pcomms already released\n";
 		assert( 0 );
 		return;
 	}
- 	cout << "calling disconnect\n";
+	cout << "calling disconnect in thread " << Thread::currentTid() << " \n";
  	_pComms->Disconnect();
-	//delete _pComms;
+  cout << "deleting pcomms in thread " << Thread::currentTid() << " \n";
+	delete _pComms;
+  cout << "deleted pcomms in thread " << Thread::currentTid() << " \n";
 }
 
 

@@ -115,10 +115,11 @@ void xplDevice::Destroy
 		return;
 	}
 
-	cout << "deiniting device\n";
+	cout << "deiniting device in thread " << Thread::currentTid() << " \n";
 	_pDevice->Deinit();
-  cout << "now deleting device\n";
+  cout << "deleting device in thread " << Thread::currentTid() << " \n";
 	delete _pDevice;
+  cout << "deleted device in thread " << Thread::currentTid() << " \n";
 }
 
 
@@ -146,7 +147,7 @@ xplDevice::xplDevice
 	m_heartbeatInterval( 5 ),
 	m_nextHeartbeat( 0 ),
 	m_bExitThread( false ),
-	m_bPaused( false ),
+
 	m_bWaitingForHub( true ),
 	m_rapidHeartbeatCounter( c_rapidHeartbeatTimeout/c_rapidHeartbeatFastInterval )
 {
@@ -159,14 +160,14 @@ xplDevice::xplDevice
 	SetCompleteId();
 
 	//m_hActive = CreateEvent( NULL, TRUE, TRUE, NULL ); 
-  m_hActive = new Poco::Event(FALSE); // - constructor
+//   m_hActive = new Poco::Event(FALSE); // - constructor
 // 	m_hRxInterrupt = CreateEvent( NULL, TRUE, FALSE, NULL );
-  m_hRxInterrupt = new Poco::Event(FALSE);
+   m_hRxInterrupt = new Poco::Event(FALSE);
 //     m_hConfig = CreateEvent( NULL, FALSE, FALSE, NULL );
-  m_hConfig = new Poco::Event(TRUE);
+//   m_hConfig = new Poco::Event(TRUE);
 //     m_hMsgRx = CreateEvent( NULL, TRUE, FALSE, NULL );
   //m_hMsgRx = new Poco::Event(FALSE);
-  m_hMsgRx = new Poco::Event(FALSE);
+//   m_hMsgRx = new Poco::Event(FALSE);
 // 	InitializeCriticalSection( &m_criticalSection );
 }
 
@@ -180,7 +181,7 @@ xplDevice::xplDevice
 xplDevice::~xplDevice( void )
 {
 
-    xplComms::Destroy(m_pComms);  
+  //xplComms::Destroy(m_pComms);  
   m_bExitThread = true;
   m_hRxInterrupt->set();
   
@@ -190,10 +191,10 @@ xplDevice::~xplDevice( void )
 	{
 		delete m_configItems[i];
 	}
-	delete m_hActive;
+// 	delete m_hActive;
   delete m_hRxInterrupt ;
-  delete m_hConfig;
-  delete m_hMsgRx;
+//   delete m_hConfig;
+//   delete m_hMsgRx;
 
 }
 
@@ -220,7 +221,6 @@ bool xplDevice::Init()
 	m_bInitialised = true;
 	m_bExitThread = false;
 
-	// Create the thread that will handle all the message traffic
   // Create the thread that will handle heartbeats
   m_hThread.start(*this);
 
@@ -244,10 +244,10 @@ bool xplDevice::Deinit()
 		return false;
 	}
 
-	xplComms::Destroy(m_pComms);  
+// 	xplComms::Destroy(m_pComms);  
   // Stop the device thread
 	m_bExitThread = true;
-  cout << "trying to trigger exit with m_hRxInterrupt: " << m_hRxInterrupt << "\n";
+  cout << "trying to trigger exit of hbeat thread with m_hRxInterrupt: " << m_hRxInterrupt << "\n";
   m_hRxInterrupt->set();
   
   
@@ -255,10 +255,7 @@ bool xplDevice::Deinit()
 	// Wait for the thread to exit
 	//WaitForSingleObject( m_hThread, INFINITE );
   m_hThread.join();
-  cout << "joined\n";
-  
-	// Close the thread handle
-// 	CloseHandle( m_hThread );
+  cout << "joined with hbeat thread\n";
 
 	//Delete the filters
 	uint32 i;
@@ -269,37 +266,6 @@ bool xplDevice::Deinit()
 
 	m_bInitialised = false;
 	return true;
-}
-
-
-/***************************************************************************
-****																	****
-****	xplDevice::Pause												****
-****																	****
-***************************************************************************/
-
-void xplDevice::Pause()
-{
-	// Pause the device thread
-	//ResetEvent( m_hActive );
-	m_hActive->reset();
-	m_bPaused = true;
-  m_hActive->set();
-}
-
-
-/***************************************************************************
-****																	****
-****	xplDevice::Resume												****
-****																	****
-***************************************************************************/
-
-void xplDevice::Resume()
-{
-	// Unpause the device thread
-	m_bPaused = false;
-  m_hActive->set();
-	//SetEvent( m_hActive )//
 }
 
 
@@ -821,11 +787,11 @@ void xplDevice::SetNextHeartbeatTime()
 
 /***************************************************************************
 ****																	****
-****	xplDevice::HandleMsg											****
+****	xplDevice::HandleMsgForUs											****
 ****																	****
 ***************************************************************************/
 
-bool xplDevice::HandleMsg
+bool xplDevice::HandleMsgForUs
 ( 
 	xplMsg* _pMsg 
 )
@@ -1043,58 +1009,60 @@ bool xplDevice::SendMsg
 	}
 
 	// Cannot send messages if we're paused
-	if( m_bPaused )
-	{
-		return false;
-	}
+// 	if( m_bPaused )
+// 	{
+// 		return false;
+// 	}
 
 	// Queue the message.
 	//EnterCriticalSection( &m_criticalSection );
-	m_criticalSection.lock();
-	_pMsg->AddRef();
-	m_txBuffer.push_back( _pMsg );
-	//SetEvent( m_hRxInterrupt );
-  m_hRxInterrupt->set();
-	//LeaveCriticalSection( &m_criticalSection );
-  m_criticalSection.unlock();
+// 	m_criticalSection.lock();
+// 	_pMsg->AddRef();
+// 	m_txBuffer.push_back( _pMsg );
+// 	//SetEvent( m_hRxInterrupt );
+//   m_hRxInterrupt->set();
+// 	//LeaveCriticalSection( &m_criticalSection );
+//   m_criticalSection.unlock();
+    //I see no reason to wait to send it...
+    m_pComms->TxMsg( _pMsg );
 	
 	return true;
 }
 
 
-/***************************************************************************
-****																	****
-****	xplDevice::GetMsg												****
-****																	****
-***************************************************************************/
-
-xplMsg* xplDevice::GetMsg()
-{
-	xplMsg* pMsg = NULL;
-
-	// If there are any messages in the buffer, remove the first one 
-    // and return it to the caller.
-	// Access to the message buffer must be serialised
-	//EnterCriticalSection( &m_criticalSection );
-  m_criticalSection.lock();
-	
-    if( m_rxBuffer.size() )
-	{
-		pMsg = m_rxBuffer.front();
-		m_rxBuffer.pop_front();
-	
-		if( 0 == m_rxBuffer.size() )
-		{
-			//No events left, so clear the signal
-			//ResetEvent( m_hMsgRx );
-      m_hMsgRx->reset();
-		}
-	}
-    	
-	//LeaveCriticalSection( &m_criticalSection );
-	m_criticalSection.unlock();
-	return( pMsg );
-}
+// /***************************************************************************
+// ****																	****
+// ****	xplDevice::GetMsg												****
+// ****																	****
+// ***************************************************************************/
+// 
+// xplMsg* xplDevice::GetMsg()
+// {
+// 	xplMsg* pMsg = NULL;
+// 
+// 	// If there are any messages in the buffer, remove the first one 
+//     // and return it to the caller.
+// 	// Access to the message buffer must be serialised
+// 	//EnterCriticalSection( &m_criticalSection );
+//   m_criticalSection.lock();
+// 	
+//     if( m_rxBuffer.size() )
+// 	{
+// 		pMsg = m_rxBuffer.front();
+// 		m_rxBuffer.pop_front();
+// 	
+// 		if( 0 == m_rxBuffer.size() )
+// 		{
+// 			//No events left, so clear the signal
+// 			//ResetEvent( m_hMsgRx );
+//       m_hMsgRx->reset();
+// 		}
+// 	}
+//     	
+// 	//LeaveCriticalSection( &m_criticalSection );
+// 	m_criticalSection.unlock();
+// 	return( pMsg );
+// }
 
 
 /***************************************************************************
@@ -1151,31 +1119,13 @@ void xplDevice::run( void )
 		}
 
 		// Calculate the time (in milliseconds) until the next heartbeat
-		//int32 heartbeatTimeout = (int32)(( m_nextHeartbeat - currentTime ) / 10000 );	// Divide by 10000 to convert 100 nanosecond intervals to milliseconds.
 		int32 heartbeatTimeout = (int32)(( m_nextHeartbeat - currentTime ) ); // Divide by 10000 to convert 100 nanosecond intervals to milliseconds.
 
     cout << "sleeping till next hbeat\n";
-    Thread::sleep(heartbeatTimeout);
+    m_hRxInterrupt->wait(heartbeatTimeout);
+        //Thread::sleep();
     cout << "slept till next hbeat\n";
-    
-		// Send any pending messages
-		if( m_txBuffer.size() )
-		{
-			//EnterCriticalSection( &m_criticalSection );
-			m_criticalSection.lock();
-			for( vector<xplMsg*>::iterator iter = m_txBuffer.begin(); iter != m_txBuffer.end(); ++iter )
-			{
-				xplMsg* pMsg = (*iter);
-				m_pComms->TxMsg( pMsg );
-				pMsg->Release();
-			}
-			m_txBuffer.clear();
-			//ResetEvent( m_hRxInterrupt );
-      m_hRxInterrupt->reset();
-      
-			//LeaveCriticalSection( &m_criticalSection );
-      m_criticalSection.unlock();
-		}
+
 	}
 	cout << "exiting dev thread (ret)\n";
 	return;
@@ -1186,26 +1136,21 @@ void xplDevice::HandleRx(MessageRxNotification* mNot)
 {
         cout << "device: start handle RX in thread " << Thread::currentTid() <<"\n";
     xplMsg* pMsg = mNot->message;
-//     // Process any xpl message received
+//    Process any xpl message received
     if( NULL != pMsg )
     {
         if( ( !m_bFilterMsgs ) || IsMsgForThisApp( pMsg ) )
         {
             // Call our own handler
-            HandleMsg( pMsg );
+            HandleMsgForUs( pMsg );
             
-            // Add it to the queue.
             //EnterCriticalSection( &m_criticalSection );
             m_criticalSection.lock();
             //m_rxBuffer.push_back( pMsg );
             //pMsg->AddRef();
-            
-            // Signal that a message is waiting
-            //SetEvent( m_hMsgRx );
-            //FIXME
-            
-            //m_hMsgRx->set();
+        
             cout << "device: posting message from thread " << Thread::currentTid() << "\n";
+            
             //increase the ref count before handing it off
             mNot->duplicate();
             rxNotificationCenter.postNotification(mNot);

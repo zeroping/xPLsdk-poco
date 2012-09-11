@@ -69,6 +69,7 @@ xplUDP* xplUDP::Create
     xplUDP* pObj = new xplUDP ( _bViaHub );
     if ( !pObj->Connect() )
     {
+        cout << "xplUDP fail destroy\n";
         xplUDP::Destroy ( pObj );
         pObj = NULL;
     }
