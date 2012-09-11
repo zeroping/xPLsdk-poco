@@ -90,7 +90,7 @@ public:
 	 * @param _ip 32bit IP address to check.
 	 * @return true if the address is a local one.
 	 */
-	bool IsLocalIP( uint32 const _ip )const;
+	bool IsLocalIP( Poco::Net::IPAddress _ip )const;
 
 	/**
 	 * Sets the port used for sending messages.

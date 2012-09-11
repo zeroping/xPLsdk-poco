@@ -56,8 +56,8 @@ string const c_version = "1.1.0";
 // (but without the .exe), or the event logging will not work.
 string const c_appName = "ConsoleApp";
 
-void HandleMessages( xplDevice* _pDevice );
-void Configure( xplDevice* _pDevice );
+// void HandleMessages( xplDevice* _pDevice );
+// void Configure( xplDevice* _pDevice );
 
 Poco::Event* configEvent;
 /***************************************************************************
@@ -74,10 +74,10 @@ class TestApp
     public:
     TestApp();
     ~TestApp();
-    void run();
-    void HandleMessages();
-    void configThread();
-    void Configure();
+    void run();    
+    void HandleMessages(MessageRxNotification* );
+//     void configThread();
+    void Configure(DeviceConfigNotification*);
     bool testRunning();
     
     xplComms* pComms;
@@ -133,16 +133,23 @@ TestApp::TestApp() {
     // Get the message and config events
     // The xplMsgEvent is signalled when an xPL message is received by the xplDevice.
     // The configEvent is signalled when the config items have been changed.
-    xplMsgEvent = pDevice->GetMsgEvent();
-    configEvent = pDevice->GetConfigEvent();
-    runningMutex.lock();
-    running = true;
-    runningMutex.unlock();
+//     xplMsgEvent = pDevice->GetMsgEvent();
+//     configEvent = pDevice->GetConfigEvent();
+//     runningMutex.lock();
+//     running = true;
+//     runningMutex.unlock();
+//     
+//     RunnableAdapter<TestApp> listenAdapt = RunnableAdapter<TestApp>(*this,&TestApp::configThread);
+//     listenThread.setName("packet listen thread");
+//     listenThread.start(listenAdapt);
     
-    RunnableAdapter<TestApp> listenAdapt = RunnableAdapter<TestApp>(*this,&TestApp::configThread);
-    listenThread.setName("packet listen thread");
-    listenThread.start(listenAdapt);
     
+    //register to observe config tasks and RX message tasks
+
+    //pDevice->rxTaskManager.addObserver(Observer<TestApp, MessageRxNotification>(*this,&TestApp::HandleMessages));
+    pDevice->rxNotificationCenter.addObserver(Observer<TestApp, MessageRxNotification>(*this,&TestApp::HandleMessages));
+    //pDevice->configTaskManager.addObserver(Observer<TestApp, DeviceConfigNotification>(*this,&TestApp::Configure));
+    pDevice->configNotificationCenter.addObserver(Observer<TestApp, DeviceConfigNotification>(*this,&TestApp::Configure));
     
     // Init the xplDevice
     // Note that all config items must have been set up before Init() is called.
@@ -157,20 +164,26 @@ TestApp::~TestApp() {
     // ************************
     // Clean up and exit
     // ************************
+    cout << "grabbing run mutex\n";
     runningMutex.lock();
     running = false;
     runningMutex.unlock();
+    
+    
     // Destroy the xPL Device
     // This also deletes any config items we may have added
     if( pDevice )
     {
+        cout << "destroying device\n";
         xplDevice::Destroy( pDevice );
         pDevice = NULL;
     }
+    cout << "dev destr\n";
     
     // Destroy the comms object
     if( pComms )
     {
+        cout << "calling disconnect in console app\n";
         xplUDP::Destroy( pComms );
         pComms = NULL;
     }
@@ -192,25 +205,28 @@ void TestApp::run() {
     // ************************
     // Main loop
     // ************************
-    
-    while( testRunning() )
-    {
-        try {
-            xplMsgEvent->wait(1000);
-        } catch (TimeoutException& e) {
-            continue;
-        }
-        cout << "xplMsgEvent happened\n";
-        HandleMessages(  );
-        xplMsgEvent->reset();
- 
-    } 
-    cout << "rx stopped\n";
+    while(1) {
+        
+    }
+//     while( testRunning() )
+//     {
+//         try {
+//             xplMsgEvent->wait(1000);
+//         } catch (TimeoutException& e) {
+//             continue;
+//         }
+//         cout << "xplMsgEvent happened\n";
+//         HandleMessages(  );
+//         xplMsgEvent->reset();
+//  
+//     } 
+//     cout << "rx stopped\n";
 }
 
 
-void TestApp::HandleMessages()
+void TestApp::HandleMessages(MessageRxNotification* mNot)
 {
+    cout<<"RX event fired in thread " << Thread::currentTid()  << "\n";
     xplMsg* pMsg = NULL;
     
     // Get each queued message in turn
@@ -224,8 +240,10 @@ void TestApp::HandleMessages()
         // Done with it.
         pMsg->Release();
     }
+    mNot->release();
+    cout << "return from RX event in thread " << Thread::currentTid()  << "\n";
 }
-
+/*
 void TestApp::configThread() {
     cout << "config thread started\n";
     while( testRunning() )
@@ -242,15 +260,16 @@ void TestApp::configThread() {
     } 
     cout << "config stopped\n";
 
-}
+}*/
 
-void TestApp::Configure()
+void TestApp::Configure(DeviceConfigNotification* confNot)
 {
     // Examine each of our config items in turn, and if they have changed,
     // take the appropriate action.
     
     // As an example, the Com Port index.
     //  
+    cout << "started reconfig from thread " << Thread::currentTid()  << "\n";
      xplConfigItem const* pItem = pDevice->GetConfigItem( "comport" );
      string value = pItem->GetValue();
      if( !value.empty() )
@@ -262,7 +281,8 @@ void TestApp::Configure()
              cout << "comport changed to: " << comPort << "\n";
              cout << "our name is: " << pDevice->GetVendorId() << "-" << pDevice->GetDeviceId() << "." <<pDevice->GetInstanceId() << "\n";
          }
-        
+    cout << "finished reconfig from thread " << Thread::currentTid()  << "\n";
+    confNot->release();
 }
 
 

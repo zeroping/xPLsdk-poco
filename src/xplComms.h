@@ -41,14 +41,23 @@
 // #include <windows.h>
 #include <string>
 #include <Poco/Event.h>
+#include <Poco/Notification.h>
+#include <Poco/NotificationCenter.h>
 #include "xplCore.h"
 
-
+using namespace Poco;
 
 namespace xpl
 {
 
 class xplMsg;
+
+class MessageRxNotification: public Notification
+{
+public:
+    MessageRxNotification(xplMsg* msgIn) {message = msgIn;}
+    xplMsg* message;
+};
 
 /**
  * Base class for communications objects
@@ -112,6 +121,8 @@ public:
 	 */
 	virtual void SendConfigHeartbeat( string const& _source, uint32 const _interval, string const& _version ) = 0;
 
+  NotificationCenter rxNotificationCenter; // used to notify devices about incomming messages
+  
 protected:
 	/**
 	 * Constructor.  Only to be called via the static Create method of 
@@ -147,7 +158,7 @@ protected:
 
     int8*	                m_pMsgBuffer;		// Buffer for temporary storage of incoming xPL message data
     static uint32 const     c_msgBufferSize;	// Size in bytes of temporary storage buffer
-
+    
 private:
 	bool	            	m_bConnected;		// True if Connect() has been called successfully
 };

@@ -33,6 +33,7 @@
 
 #include "xplCore.h"
 #include "xplComms.h"
+#include <iostream>
 
 using namespace xpl;
 
@@ -50,14 +51,16 @@ void xplComms::Destroy
 	xplComms* _pComms 
 )
 {
+    cout << "xplComms::Destroy\n";
 	if( NULL == _pComms )
 	{
+    cout << "pcomms alread released\n";
 		assert( 0 );
 		return;
 	}
-
-	_pComms->Disconnect();
-	delete _pComms;
+ 	cout << "calling disconnect\n";
+ 	_pComms->Disconnect();
+	//delete _pComms;
 }
 
 

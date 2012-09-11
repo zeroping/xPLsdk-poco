@@ -60,23 +60,7 @@ xplUDP* xplUDP::Create
     bool const _bViaHub
 )
 {
-// 	uint32_t wVersionRequested = MAKEWORD( 2, 2 );
-// 	WSADATA wsaData;
-// 	uint32 err = WSAStartup( wVersionRequested, &wsaData );
-// 	if ( err != 0 )
-// 	{
-// 		// No suitable Winsock DLL found
-// 		assert( 0 );
-// 		return( NULL );
-// 	}
-//
-// 	// Confirm that the Winsock DLL supports 2.2.*/
-// 	if( LOBYTE( wsaData.wVersion ) != 2 || HIBYTE( wsaData.wVersion ) != 2 )
-// 	{
-// 		assert( 0 );
-// 		WSACleanup();
-// 		return( NULL );
-// 	}
+
 
 
     cout << "xplUDP create\n";
@@ -125,91 +109,12 @@ xplUDP::xplUDP
         //cout << "testing : " << m_localIPs[i].toString() << " : " << m_localIPs[i].isLinkLocal() << "\n";
         if (!m_localIPs[i].isLoopback())
         {
-//             sockaddr_in addr;
-//             memset ( &addr, 0, sizeof ( addr ) );
-//             addr.sin_family = AF_INET;
-//             addr.sin_addr.s_addr = m_localIPs[i];
-//             char* ip = inet_ntoa ( addr.sin_addr );
-//             m_ip = ip;
             m_ip = m_localIPs[i];
             break;
         }
     }
     cout << "our hbeat address is " << m_ip.toString() << "\n";
-// 
-//     // Read the xpl settings from the registry
-// 
-//     HKEY hKey;
-//     if ( RegOpen ( HKEY_LOCAL_MACHINE, "SOFTWARE\\xPL", &hKey ) )
-//     {
-//         // Broadcast Address
-//         string broadcastAddress;
-//         if ( RegRead ( hKey, "BroadcastAddress", &broadcastAddress ) )
-//         {
-//             uint32 ip = inet_addr ( broadcastAddress.c_str() );
-//             if ( INADDR_NONE != ip )
-//             {
-//                 m_txAddr = ip;
-//             }
-//         }
-// 
-//         // Listen-On Address
-//         string listenOnAddress;
-//         if ( RegRead ( hKey, "ListenOnAddress", &listenOnAddress ) )
-//         {
-//             if ( listenOnAddress != string ( "ANY_LOCAL" ) )
-//             {
-//                 // If the setting is not "ANY LOCAL" we assume that it is an address instead
-//                 // The address must be local.
-//                 uint32 ip = inet_addr ( listenOnAddress.c_str() );
-//                 if ( ( INADDR_NONE != ip ) && IsLocalIP ( ip ) )
-//                 {
-//                     m_listenOnAddress = ip;
-//                     m_ip = listenOnAddress;
-//                 }
-//             }
-//         }
-// 
-//         // Listen-To Addresses
-//         string listenToAddress;
-//         if ( RegRead ( hKey, "ListenToAddress", &listenToAddress ) )
-//         {
-//             if ( listenToAddress != "ANY" )
-//             {
-//                 // Assume a comma-separated list of IPs
-//                 m_bListenToFilter = true;
-// 
-//                 uint32 start = 0;
-//                 uint32 pos = 0;
-//                 uint32 length = ( uint32 ) listenToAddress.size();
-//                 int8* pBuffer = new int8[length+1];
-//                 memcpy ( pBuffer, listenToAddress.c_str(), length );
-//                 pBuffer[length] = 0;
-//                 while ( pBuffer[pos++] )
-//                 {
-//                     int8 ch = pBuffer[pos];
-//                     if ( !ch || ( ch==',' ) )
-//                     {
-//                         // Extract the string
-//                         pBuffer[pos] = 0;
-// 
-//                         uint32 ip = inet_addr ( &pBuffer[start] );
-//                         if ( INADDR_NONE != ip )
-//                         {
-//                             m_listenToAddresses.push_back ( ip );
-//                         }
-// 
-//                         pBuffer[pos] = ch;
-//                         start = pos+1;
-//                     }
-//                 }
-//                 delete [] pBuffer;
-//             }
-//         }
-// 
-//         // Close the key
-//         RegClose ( hKey );
-//     }
+
 }
 
 
@@ -224,7 +129,7 @@ xplUDP::~xplUDP()
     assert ( !IsConnected() );
 
     // Finished with the sockets
-//     WSACleanup();
+
 }
 
 
@@ -263,15 +168,6 @@ bool xplUDP::TxMsg
         cout << "  to " << destAddress.toString() << "\n";
         dgs.sendTo(pMsgBuffer,dataLength, destAddress);
         
-        //m_sock.sendTo(pMsgBuffer,dataLength, broad);
-        
-        
-        
-//         if ( SOCKET_ERROR != sendto ( m_sock, pMsgBuffer, dataLength, 0, ( SOCKADDR* ) &txAddr, sizeof ( txAddr ) ) )
-//         {
-//             // Success
-//             bRetVal = true;
-//         }
     }
 
     return bRetVal;
@@ -290,6 +186,13 @@ xplMsg* xplUDP::RxMsg
     uint32 _timeout
 )
 {
+    
+    if (exitevt != NULL && exitevt->tryWait(1)) { //TODO this is a hack... can't we wait on the socket and this somehow?
+        cout << "exitevt signaled\n";
+    }
+    cout << "exitevt said it's not signaled: " << exitevt <<"\n";
+    
+    
     //cout << "rx wait\n";
     if (!incommingQueue.size()) {
         try {
@@ -310,35 +213,7 @@ xplMsg* xplUDP::RxMsg
     incommingQueueLock.unlock();
     m_rxEvent.reset();
     return toRet;
-    
-    // Wait if required
-//     if ( _timeout )
-//     {
-//         HANDLE handles[2];
-//         handles[0] = m_rxEvent;		//Network event signalled on FD_
-//         handles[1] = _hInterrupt;
-// 
-//          numHandles = 2;
-//         if ( INVALID_HANDLE_VALUE == _hInterrupt )
-//         {
-//             numHandles = 1;
-//         }
-// 
-//         // Wait
-//          res = WaitForMultipleObjects ( numHandles, handles, FALSE, _timeout );
-// 
-//         // Check if the wait timed-out, or the interrupt event was signalled
-//         if ( WAIT_OBJECT_0 != res )
-//         {
-//             return NULL;
-//         }
-// 
-//         // Reset the message event
-//         WSAResetEvent ( m_rxEvent );
-//     }
-// 
-//     // Read any incoming messages
-//     
+   
     return NULL;
 }
 
@@ -360,50 +235,6 @@ bool xplUDP::Connect()
     cout << "trying port " << m_rxPort << "\n";
     Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), m_rxPort);
 
-
-//     dgs.setBroadcast(true);
-//     
-//     char buffer[1024];
-//     for (;;)
-//     {
-//         Poco::Net::SocketAddress sender;
-//         int n = dgs.receiveFrom(buffer, sizeof(buffer)-1, sender);
-//         buffer[n] = '\0';
-//         std::cout << sender.toString() << ": " << buffer << std::endl;
-//         
-//         std::string syslogMsg;
-//         Poco::Timestamp now;
-//         syslogMsg = Poco::DateTimeFormatter::format(now,
-//                                                     "<14>%w %f %H:%M:%S Hello, world!");
-//         
-//         Poco::Net::SocketAddress broad("255.255.255.255", 12344);
-//         dgs.sendTo(syslogMsg.data(),syslogMsg.size(), broad);
-//     }
-
-
-//     // Create a socket for sending messages
-//     if ( INVALID_SOCKET == ( m_sock = socket ( AF_INET, SOCK_DGRAM, IPPROTO_UDP ) ) )
-//     {
-//         if ( EventLog::Get() )
-//         {
-//             EventLog::Get()->ReportError ( "Unable to create socket" );
-//         }
-//         goto ConnectError;
-//     }
-// 
-//     // Enable broadcast transmission
-//     {
-//         uint32 enable = 1;
-//         if ( setsockopt ( m_sock, SOL_SOCKET, SO_BROADCAST, ( int8* ) &enable, sizeof ( enable ) ) )
-//         {
-//             if ( EventLog::Get() )
-//             {
-//                 EventLog::Get()->ReportError ( "Cannot enable broadcast mode" );
-//             }
-//             goto ConnectError;
-//         }
-//     }
-// 
 //     // If we are not communicating via a hub (PocketPC app or the hub
 //     // app itself, for example), then we bind directly to the standard
 //     // xpl port.  Otherwise we try to bind to one numbered 50000+.
@@ -421,32 +252,14 @@ bool xplUDP::Connect()
 //     {
 //         // Not using a hub.  If we fail to bind to the hub port, then we will
 //         // assume there is already one running, and bind to port 50000+ instead.
-//         m_rxPort = c_xplHubPort;
-//         sockaddr_in rxAddr;
-//         rxAddr.sin_family = AF_INET;
-//         rxAddr.sin_addr.s_addr = m_listenOnAddress;
-//         rxAddr.sin_port = htons ( m_rxPort );
-//         if ( SOCKET_ERROR != bind ( m_sock, ( SOCKADDR* ) &rxAddr, sizeof ( rxAddr ) ) )
-//         {
-//             bBound = true;
-// 
-//             if ( EventLog::Get() )
-//             {
-//                 char str[64];
-//                 sprintf ( str, "Listening to port %d on %s", m_rxPort, inet_ntoa ( rxAddr.sin_addr ) );
-//                 EventLog::Get()->ReportInformation ( str );
-//             }
-//         }
 //     }
 // 
      if ( !bBound )
      {
 //         // Try to bind to a port numbered 50000+
-//         sockaddr_in rxAddr;
-//         rxAddr.sin_family = AF_INET;
-//         rxAddr.sin_addr.s_addr = m_listenOnAddress;
+
          m_rxPort = 50000;
-// 
+
          while ( !bBound )
          {
              sa = SocketAddress(Poco::Net::IPAddress(), m_rxPort);
@@ -457,34 +270,7 @@ bool xplUDP::Connect()
                  cout << "can't open port " << m_rxPort << "\n";
                  m_rxPort += 1;
              }
-//             rxAddr.sin_port = htons ( m_rxPort );
-//             if ( SOCKET_ERROR != bind ( m_sock, ( SOCKADDR* ) &rxAddr, sizeof ( rxAddr ) ) )
-//             {
-//                 if ( EventLog::Get() )
-//                 {
-//                     char str[64];
-//                     sprintf ( str, "Listening to port %d on %s", m_rxPort, inet_ntoa ( rxAddr.sin_addr ) );
-//                     EventLog::Get()->ReportInformation ( str );
-//                 }
-//                 break;
-//             }
-// 
-//             if ( WSAEADDRINUSE == WSAGetLastError() )
-//             {
-//                 // Port in use.  Try the next one
-//                 ++m_rxPort;
-//                 continue;
-//             }
-// 
-//             if ( EventLog::Get() )
-//             {
-//                 char str[64];
-//                 sprintf ( str, "Unable to bind to a port on %s", inet_ntoa ( rxAddr.sin_addr ) );
-//                 EventLog::Get()->ReportError ( str );
-//             }
-// 
-//              errorCode = WSAGetLastError();
-//             goto ConnectError;
+
          }
      }
      cout << "open on port " << m_rxPort << "\n";
@@ -501,13 +287,7 @@ bool xplUDP::Connect()
 //         }
 //     }
 // 
-//     // Create the event to use to wait for received data.
-//     m_rxEvent = WSACreateEvent();
-//     if ( WSA_INVALID_EVENT != m_rxEvent )
-//     {
-//         WSAEventSelect ( m_sock, m_rxEvent, FD_READ );
-//     }
-// 
+
 //     // Call the base class
      
      xplComms::Connect();
@@ -533,27 +313,17 @@ bool xplUDP::Connect()
 
 void xplUDP::Disconnect()
 {
+    
+
      if ( IsConnected() )
     {
-//         if ( INVALID_SOCKET != m_sock )
-//         {
-//             closesocket ( m_sock );
-//             m_sock = INVALID_SOCKET;
-//         }
-// 
-//         if ( WSA_INVALID_EVENT != m_rxEvent )
-//         {
-//             WSACloseEvent ( m_rxEvent );
-//             m_rxEvent = WSA_INVALID_EVENT;
-//         }
-// 
-
-
+        cout << "setting disconnect bool\n";
          xplComms::Disconnect();
         listenThread.join();
     
      }
     
+    delete listenAdapt;
 
 }
 
@@ -568,38 +338,7 @@ bool xplUDP::GetLocalIPs()
 {
     // Remove any old addresses
     m_localIPs.clear();
-//
-//     int8 hostName[81];
-//     if ( gethostname ( hostName, 80 ) )
-//     {
-//         // Error (no network card?)
-//         goto GetLocalIPsError;
-//     }
-//
-//     // Build the list of IP addresses
-//     {
-//         struct hostent* pHostEnt = gethostbyname ( hostName );
-//         if ( NULL == pHostEnt )
-//         {
-//             // Error (no network card?)
-//             goto GetLocalIPsError;
-//         }
-//
-//         int8* pAddr = NULL;
-//         uint32 i = 0;
-//         while ( pAddr = pHostEnt->h_addr_list[i++] )
-//         {
-//             m_localIPs.push_back ( * ( unsigned long* ) pAddr );
-//         }
-//
-//         if ( m_localIPs.size() > 0 )
-//         {
-//             // List built successfully.
-//             return true;
-//         }
-//     }
-//
-//     // No IPs found
+
 
 // horrible hack for linux
 
@@ -652,14 +391,6 @@ bool xplUDP::GetLocalIPs()
     close ( s );
 
 
-
-
-
-// GetLocalIPsError:
-//     // There was a problem, but we can at least
-//     // have the loopback address in the list.
-    //Poco::Net::IPAddress local = Poco::Net::IPAddress("127.0.0.1" );
-    //m_localIPs.push_back (local);
     return true;
 }
 
@@ -672,17 +403,16 @@ bool xplUDP::GetLocalIPs()
 
 bool xplUDP::IsLocalIP
 (
-    uint32 const _ip
+    IPAddress _ip
 ) const
 {
-//     for ( int i=0; i<m_localIPs.size(); ++i )
-//     {
-//         if ( m_localIPs[i] == _ip )
-//         {
-//             return true;
-//         }
-//     }
-
+    for ( int i=0; i<m_localIPs.size(); ++i )
+    {
+        if ( m_localIPs[i] == _ip )
+        {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -785,16 +515,21 @@ void xplUDP::SendConfigHeartbeat
 
 void xplUDP::ListenForPackets() {
     cout << "started listening\n";
-    //m_sock.setReceiveTimeout(1000);
+    Poco::Timespan timeout = Poco::Timespan(0,0,0,1,0);
+    m_sock.setReceiveTimeout(timeout);
     while( this->IsConnected()){//TODO locking here
-        //cout << "listening\n";
+        cout << "listening with timeout " << m_sock.getReceiveTimeout().totalMilliseconds() <<"\n";
         char buffer[2024];
         Poco::Net::SocketAddress sender;
+        //int bytesRead = m_sock.receiveFrom(buffer, sizeof(buffer)-1, sender);
+        bool ready = m_sock.poll(timeout, Socket::SELECT_READ);
+        if (! ready) {
+            continue;
+        }
         int bytesRead = m_sock.receiveFrom(buffer, sizeof(buffer)-1, sender);
-        
-        cout << "got " << bytesRead << " bytes\n";
+        //cout << "got " << bytesRead << " bytes\n";
         if (bytesRead == 0) {
-            
+            cout << "no bytes\n";
             continue;
         }
         buffer[bytesRead] = '\0';
@@ -823,12 +558,14 @@ void xplUDP::ListenForPackets() {
         // 
         //     // Create an xplMsg object from the received data
             xplMsg* pMsg = xplMsg::Create ( buffer );
-            incommingQueueLock.lock();
-            incommingQueue.push(pMsg);
-            cout << "added packet to queue of " << incommingQueue.size() << "\n";
-            incommingQueueLock.unlock();
-            m_rxEvent.set();
-            
+//             incommingQueueLock.lock();
+//             incommingQueue.push(pMsg);
+//             cout << "added packet to queue of " << incommingQueue.size() << "\n";
+//             incommingQueueLock.unlock();
+//             m_rxEvent.set();
+//             
+            rxNotificationCenter.postNotification(new MessageRxNotification(pMsg));
+            pMsg->Release();
 //             return ( pMsg );
         
     }

@@ -46,11 +46,16 @@
 #include <Poco/Runnable.h>
 #include <Poco/Thread.h>
 #include <Poco/File.h>
+#include <Poco/Notification.h>
+#include <Poco/Observer.h>
+#include <Poco/TaskManager.h>
 #include <iostream>
 #include <fstream>
 #include "xplCore.h"
+#include "xplComms.h"
 
 using namespace Poco;
+
 namespace xpl
 {
 
@@ -58,6 +63,12 @@ class xplComms;
 class xplMsg;
 class xplFilter;
 class xplConfigItem;
+
+
+
+class DeviceConfigNotification: public Notification
+{
+};
 
 /** 
  * Implements the core xPL functionality.
@@ -324,6 +335,22 @@ public:
 	void SetInstanceId( string const& _instanceId ){ m_instanceId = _instanceId; SetCompleteId(); }
 
 	
+// 	template <class C, class N> {
+//       typedef void (C::*Callback)(N*);
+// //   template <class C>
+//   void addRXObserver (C& object, (void (C::*)) method) {} 
+//   }
+// 	typedef void (C::*Callback)(N*);
+//   Observer(C& object, Callback method): 
+	//void addRXObserver ( Observer(C& object, Callback method) arg1 );
+  //void addDeviceConfigObserver ( Observer< typename tname,  typename notname > arg1 );
+
+  //TaskManager configTaskManager;
+  NotificationCenter configNotificationCenter;
+  //TaskManager rxTaskManager;
+  NotificationCenter rxNotificationCenter;
+  
+	
 private:
 	/**
 	 * Handles the xPL configuration messages.
@@ -413,6 +440,8 @@ private:
 	 */
 	void SetCompleteId();
 
+  void HandleRx(MessageRxNotification*);
+  
 	/**
 	 * Thread procedure that handles all the xplDevice message traffic
 	 * @param _lpArg thread procedure argument.  Points to the xplDevice object.
@@ -465,6 +494,9 @@ private:
 	static uint32 const		c_rapidHeartbeatFastInterval;	// Three seconds for the first
 	static uint32 const		c_rapidHeartbeatTimeout;		// two minutes, after which the rate drops to
 	static uint32 const		c_rapidHeartbeatSlowInterval;	// once every thirty seconds.
+	
+
+	
 };
 
 } // namespace xpl
