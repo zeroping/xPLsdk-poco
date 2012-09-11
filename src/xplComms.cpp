@@ -52,18 +52,18 @@ void xplComms::Destroy
 	xplComms* _pComms 
 )
 {
-    cout << "xplComms::Destroy in thread " << Thread::currentTid() << " \n";
+//     cout << "xplComms::Destroy in thread " << Thread::currentTid() << " \n";
 	if( NULL == _pComms )
 	{
-    cout << "pcomms already released\n";
+//     cout << "pcomms already released\n";
 		assert( 0 );
 		return;
 	}
-	cout << "calling disconnect in thread " << Thread::currentTid() << " \n";
+// 	cout << "calling disconnect in thread " << Thread::currentTid() << " \n";
  	_pComms->Disconnect();
-  cout << "deleting pcomms in thread " << Thread::currentTid() << " \n";
+//   cout << "deleting pcomms in thread " << Thread::currentTid() << " \n";
 	delete _pComms;
-  cout << "deleted pcomms in thread " << Thread::currentTid() << " \n";
+//   cout << "deleted pcomms in thread " << Thread::currentTid() << " \n";
 }
 
 

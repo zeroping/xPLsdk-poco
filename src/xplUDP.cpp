@@ -60,10 +60,6 @@ xplUDP* xplUDP::Create
     bool const _bViaHub
 )
 {
-
-
-
-    cout << "xplUDP create\n";
     
     // Create the xplUDP object
     xplUDP* pObj = new xplUDP ( _bViaHub );
@@ -318,7 +314,7 @@ void xplUDP::Disconnect()
 
      if ( IsConnected() )
     {
-        cout << "setting disconnect bool\n";
+//         cout << "setting disconnect bool\n";
          xplComms::Disconnect();
         listenThread.join();
     
@@ -373,7 +369,7 @@ bool xplUDP::GetLocalIPs()
     }
 
     ifs = ifconf.ifc_len / sizeof ( ifr[0] );
-    printf ( "interfaces = %d:\n", ifs );
+    //printf ( "interfaces = %d:\n", ifs );
     for ( i = 0; i < ifs; i++ )
     {
         char ip[INET_ADDRSTRLEN];
@@ -385,7 +381,7 @@ bool xplUDP::GetLocalIPs()
             return 0;
         }
 
-        printf ( "%s - %s\n", ifr[i].ifr_name, ip );
+        //printf ( "%s - %s\n", ifr[i].ifr_name, ip );
         m_localIPs.push_back ( IPAddress ( ip ) );
     }
 
@@ -515,11 +511,11 @@ void xplUDP::SendConfigHeartbeat
 
 
 void xplUDP::ListenForPackets() {
-    cout << "started listening\n";
+//     cout << "started listening\n";
     Poco::Timespan timeout = Poco::Timespan(0,0,0,1,0);
     m_sock.setReceiveTimeout(timeout);
     while( this->IsConnected()){//TODO locking here
-        cout << "listening with timeout " << m_sock.getReceiveTimeout().totalMilliseconds() <<"\n";
+        //cout << "listening with timeout " << m_sock.getReceiveTimeout().totalMilliseconds() <<"\n";
         char buffer[2024];
         Poco::Net::SocketAddress sender;
         //int bytesRead = m_sock.receiveFrom(buffer, sizeof(buffer)-1, sender);

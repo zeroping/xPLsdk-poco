@@ -110,14 +110,14 @@ TestApp::TestApp() {
     // to request a vendor ID.
     // Replace "device" with a suitable device name for your application - usually something
     // related to what is being xPL-enabled.  Device names can be no more than 8 characters.
-    cout << "xplUDP created\n";
+    cout << "app: xplUDP created\n";
     pDevice = xplDevice::Create( "vendor", "device", c_version, true, true, pComms );
     if( NULL == pDevice )
     {
         cout << "error\n\n";
         return;
     }
-    cout << "xpl device created\n";
+
     // Create any additional config items
     // As an example, the following code creates an item to hold the index
     // of a com port.  The value can be changed by the user in xPLHal.
@@ -150,7 +150,7 @@ TestApp::~TestApp() {
     // ************************
     // Clean up and exit
     // ************************
-    cout << "grabbing run mutex\n";
+
     runningMutex.lock();
     running = false;
     runningMutex.unlock();
@@ -160,16 +160,16 @@ TestApp::~TestApp() {
     // This also deletes any config items we may have added
     if( pDevice )
     {
-        cout << "destroying device\n";
+        cout << "app: destroying device\n";
         xplDevice::Destroy( pDevice );
         pDevice = NULL;
     }
-    cout << "dev destr\n";
+
     
     // Destroy the comms object
     if( pComms )
     {
-        cout << "calling disconnect in console app\n";
+        cout << "app: destroying pComms\n";
         xplUDP::Destroy( pComms );
         pComms = NULL;
     }
@@ -203,21 +203,17 @@ void TestApp::run() {
 
 void TestApp::HandleMessages(MessageRxNotification* mNot)
 {
-    cout<<"RX event fired in thread " << Thread::currentTid()  << "\n";
+    cout<<"app: RX event fired in thread " << Thread::currentTid()  << "\n";
     xplMsg* pMsg = NULL;
     
-    // Get each queued message in turn
-//     while( pMsg = pDevice->GetMsg() )
-//     {
+
         pMsg = mNot->message;
         cout << "app: start handling the message: " << pMsg->GetSchemaClass() << "." << pMsg->GetSchemaType() << "\n";
         int vnum;
         for (vnum = 0; vnum < pMsg->GetNumMsgItems(); vnum++) {
             cout << "\t" << pMsg->GetMsgItem(vnum)->GetName() << " = " << pMsg->GetMsgItem(vnum)->GetValue() << "\n";
         }
-        // Done with it.
-        //pMsg->Release();
-//     }
+
     mNot->release();
     cout << "app: stop handling the message " << Thread::currentTid()  << "\n";
 }

@@ -115,11 +115,11 @@ void xplDevice::Destroy
 		return;
 	}
 
-	cout << "deiniting device in thread " << Thread::currentTid() << " \n";
+// 	cout << "deiniting device in thread " << Thread::currentTid() << " \n";
 	_pDevice->Deinit();
-  cout << "deleting device in thread " << Thread::currentTid() << " \n";
+//   cout << "deleting device in thread " << Thread::currentTid() << " \n";
 	delete _pDevice;
-  cout << "deleted device in thread " << Thread::currentTid() << " \n";
+//   cout << "deleted device in thread " << Thread::currentTid() << " \n";
 }
 
 
@@ -159,16 +159,8 @@ xplDevice::xplDevice
 
 	SetCompleteId();
 
-	//m_hActive = CreateEvent( NULL, TRUE, TRUE, NULL ); 
-//   m_hActive = new Poco::Event(FALSE); // - constructor
-// 	m_hRxInterrupt = CreateEvent( NULL, TRUE, FALSE, NULL );
    m_hRxInterrupt = new Poco::Event(FALSE);
-//     m_hConfig = CreateEvent( NULL, FALSE, FALSE, NULL );
-//   m_hConfig = new Poco::Event(TRUE);
-//     m_hMsgRx = CreateEvent( NULL, TRUE, FALSE, NULL );
-  //m_hMsgRx = new Poco::Event(FALSE);
-//   m_hMsgRx = new Poco::Event(FALSE);
-// 	InitializeCriticalSection( &m_criticalSection );
+
 }
 
 
@@ -191,11 +183,7 @@ xplDevice::~xplDevice( void )
 	{
 		delete m_configItems[i];
 	}
-// 	delete m_hActive;
   delete m_hRxInterrupt ;
-//   delete m_hConfig;
-//   delete m_hMsgRx;
-
 }
 
 
@@ -213,7 +201,6 @@ bool xplDevice::Init()
 		assert(0);
 		return false;
 	}
-	
 	// Restore any saved configuration
 	m_bConfigRequired = true;
 	LoadConfig();
@@ -224,6 +211,7 @@ bool xplDevice::Init()
   // Create the thread that will handle heartbeats
   m_hThread.start(*this);
 
+  //register to get all the rxed messages from the comms
   m_pComms->rxNotificationCenter.addObserver(Observer<xplDevice, MessageRxNotification>(*this,&xplDevice::HandleRx));
   
 	return true;
@@ -240,22 +228,16 @@ bool xplDevice::Deinit()
 {
 	if( !m_bInitialised )
 	{
-		// Not initialised
 		return false;
 	}
 
-// 	xplComms::Destroy(m_pComms);  
-  // Stop the device thread
 	m_bExitThread = true;
-  cout << "trying to trigger exit of hbeat thread with m_hRxInterrupt: " << m_hRxInterrupt << "\n";
+  //cout << "trying to trigger exit of hbeat thread with m_hRxInterrupt: " << m_hRxInterrupt << "\n";
   m_hRxInterrupt->set();
   
-  
-
 	// Wait for the thread to exit
-	//WaitForSingleObject( m_hThread, INFINITE );
   m_hThread.join();
-  cout << "joined with hbeat thread\n";
+  //cout << "joined with hbeat thread\n";
 
 	//Delete the filters
 	uint32 i;
@@ -1093,7 +1075,7 @@ void xplDevice::run( void )
 
 	while( !m_bExitThread )
 	{
-    cout << "dev listen\n";
+//     cout << "dev listen\n";
 		// Deal with heartbeats
 		int64_t currentTime;
     Poco::Timestamp tst;
@@ -1124,17 +1106,17 @@ void xplDevice::run( void )
     cout << "sleeping till next hbeat\n";
     m_hRxInterrupt->wait(heartbeatTimeout);
         //Thread::sleep();
-    cout << "slept till next hbeat\n";
+    cout << "wakeup for next hbeat or exit interrupt\n";
 
 	}
-	cout << "exiting dev thread (ret)\n";
+// 	cout << "exiting dev thread (ret)\n";
 	return;
 }
 
 
 void xplDevice::HandleRx(MessageRxNotification* mNot)
 {
-        cout << "device: start handle RX in thread " << Thread::currentTid() <<"\n";
+//         cout << "device: start handle RX in thread " << Thread::currentTid() <<"\n";
     xplMsg* pMsg = mNot->message;
 //    Process any xpl message received
     if( NULL != pMsg )
@@ -1149,12 +1131,12 @@ void xplDevice::HandleRx(MessageRxNotification* mNot)
             //m_rxBuffer.push_back( pMsg );
             //pMsg->AddRef();
         
-            cout << "device: posting message from thread " << Thread::currentTid() << "\n";
+//             cout << "device: posting message from thread " << Thread::currentTid() << "\n";
             
             //increase the ref count before handing it off
             mNot->duplicate();
             rxNotificationCenter.postNotification(mNot);
-            cout << "device: posted message from thread " << Thread::currentTid()  << "\n";
+//             cout << "device: posted message from thread " << Thread::currentTid()  << "\n";
             //LeaveCriticalSection( &m_criticalSection );
             m_criticalSection.unlock();
         }
@@ -1162,7 +1144,7 @@ void xplDevice::HandleRx(MessageRxNotification* mNot)
 //         pMsg->Release();
     }
     mNot->release();
-    cout << "device: stop handle RX in thread " << Thread::currentTid() <<"\n";
+//     cout << "device: stop handle RX in thread " << Thread::currentTid() <<"\n";
 }
 
 
