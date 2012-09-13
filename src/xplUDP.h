@@ -42,6 +42,7 @@
 #include "Poco/Event.h"
 #include "Poco/Net/IPAddress.h"
 #include "Poco/Net/DatagramSocket.h"
+#include "Poco/Net/NetworkInterface.h"
 #include "Poco/Thread.h"
 #include "Poco/RunnableAdapter.h"
 #include "Poco/Mutex.h"
@@ -114,7 +115,7 @@ public:
 	 * Gets the local IP address that is used in xPL heartbeat messages.
 	 * @return the heartbeat IP address.
 	 */
-	string GetHeartbeatIP()const{ return m_ip.toString(); }
+	string GetHeartbeatIP()const{ return m_interface.address().toString(); }
 
 	// Overrides of xplComms' methods.  See xplComms.h for documentation.
 	virtual bool TxMsg( xplMsg* _pMsg );
@@ -151,7 +152,7 @@ private:
 
 	uint16						m_rxPort;				// Port on which we are listening for messages
 	uint16						m_txPort;				// Port on which we are sending messages
-	Poco::Net::IPAddress						m_ip;					// Local IP address to use in xPL heartbeats
+	Poco::Net::NetworkInterface						m_interface;					// Local IP address to use in xPL heartbeats
 	bool						m_bViaHub;				// If false, bind directly to port 3865
 	
 	//SOCKET						m_sock;					// Socket used to send and receive xpl Messages

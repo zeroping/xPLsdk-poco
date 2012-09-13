@@ -34,6 +34,7 @@
 #include "Poco/Net/SocketAddress.h"
 #include "Poco/DateTimeFormatter.h"
 #include "Poco/Net/NetException.h"
+#include "Poco/Net/NetworkInterface.h"
 #include "xplCore.h"
 #include "xplStringUtils.h"
 #include "xplMsg.h"
@@ -45,6 +46,7 @@
 
 using namespace xpl;
 using namespace Poco::Net;
+using Poco::Net::NetworkInterface;
 
 uint16 const xplUDP::c_xplHubPort = 3865;
 
@@ -89,28 +91,27 @@ xplUDP::xplUDP
     m_txPort ( c_xplHubPort ),
     //m_txAddr ( INADDR_BROADCAST ),
     //m_listenOnAddress ( INADDR_ANY ),
-    m_bListenToFilter ( false ),
-    m_ip ( "127.0.0.1" )
-    //m_rxEvent ( WSA_INVALID_EVENT )
+    m_bListenToFilter ( false )
 {
     uint32 i;
 // 
 //     // Build the list of local IP addreses
-     GetLocalIPs();
+     
 // 
 //     // If possible, set our IP (for use in heatbeats) to the
 //     // first local IP that is not the loopback address.
-    for ( i=0; i<m_localIPs.size(); ++i )
-    {
-//         if ( INADDR_LOOPBACK != m_localIPs[i] )
-        //cout << "testing : " << m_localIPs[i].toString() << " : " << m_localIPs[i].isLinkLocal() << "\n";
-        if (!m_localIPs[i].isLoopback())
-        {
-            m_ip = m_localIPs[i];
+    NetworkInterface::NetworkInterfaceList netlist = NetworkInterface::list();
+    
+    vector<NetworkInterface>::iterator nit = netlist.begin();
+    for (nit = netlist.begin(); nit != netlist.end(); ++nit) {
+        cout << "net: " << (*nit).address().toString() << " : " << (*nit).broadcastAddress().toString() << "\n";
+        if (!(*nit).address().isLoopback()) {
+            m_interface = (*nit);
             break;
         }
     }
-    cout << "our hbeat address is " << m_ip.toString() << "\n";
+    
+    cout << "our hbeat address is " << m_interface.address().toString() << "\n";
 
 }
 
@@ -150,14 +151,10 @@ bool xplUDP::TxMsg
         int8* pMsgBuffer;
         uint32 dataLength = _pMsg->GetRawData ( &pMsgBuffer );
 
-        string lbcastaddr = m_ip.toString();
-        int lastd = lbcastaddr.find_last_of('.');
-        lbcastaddr = lbcastaddr.substr(0,lastd+1) + "255";
-
-        IPAddress lbcast = Poco::Net::IPAddress(lbcastaddr);
+        IPAddress lbcast = m_interface.broadcastAddress();
 
         
-        Poco::Net::SocketAddress sourceAddress(m_ip, 50000);
+        Poco::Net::SocketAddress sourceAddress(m_interface.address(), 50000);
         Poco::Net::SocketAddress destAddress(lbcast, 3865);
         DatagramSocket dgs(sourceAddress,true);
         dgs.setBroadcast(true);
@@ -325,71 +322,6 @@ void xplUDP::Disconnect()
 }
 
 
-/***************************************************************************
-****																	****
-****	xplUDP::GetLocalIPs						  						****
-****																	****
-***************************************************************************/
-
-bool xplUDP::GetLocalIPs()
-{
-    // Remove any old addresses
-    m_localIPs.clear();
-
-
-// horrible hack for linux
-
-#include <stdio.h>
-#include <sys/socket.h>
-#include <sys/ioctl.h>
-#include <linux/netdevice.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <unistd.h>
-    int s;
-    struct ifconf ifconf;
-    struct ifreq ifr[50];
-    int ifs;
-    int i;
-
-    s = socket ( AF_INET, SOCK_STREAM, 0 );
-    if ( s < 0 )
-    {
-        perror ( "socket" );
-        return 0;
-    }
-
-    ifconf.ifc_buf = ( char * ) ifr;
-    ifconf.ifc_len = sizeof ifr;
-
-    if ( ioctl ( s, SIOCGIFCONF, &ifconf ) == -1 )
-    {
-        perror ( "ioctl" );
-        return 0;
-    }
-
-    ifs = ifconf.ifc_len / sizeof ( ifr[0] );
-    //printf ( "interfaces = %d:\n", ifs );
-    for ( i = 0; i < ifs; i++ )
-    {
-        char ip[INET_ADDRSTRLEN];
-        struct sockaddr_in *s_in = ( struct sockaddr_in * ) &ifr[i].ifr_addr;
-
-        if ( !inet_ntop ( AF_INET, &s_in->sin_addr, ip, sizeof ( ip ) ) )
-        {
-            perror ( "inet_ntop" );
-            return 0;
-        }
-
-        //printf ( "%s - %s\n", ifr[i].ifr_name, ip );
-        m_localIPs.push_back ( IPAddress ( ip ) );
-    }
-
-    close ( s );
-
-
-    return true;
-}
 
 
 /***************************************************************************
@@ -453,7 +385,7 @@ void xplUDP::SendHeartbeat
         sprintf ( value, "%d", m_rxPort );
         pMsg->AddValue ( "port", value );
 
-        pMsg->AddValue ( "remote-ip", m_ip.toString() );
+        pMsg->AddValue ( "remote-ip", m_interface.address().toString() );
         pMsg->AddValue ( "version", _version );
 
         TxMsg ( pMsg );
@@ -501,7 +433,7 @@ void xplUDP::SendConfigHeartbeat
         sprintf ( value, "%d", m_rxPort );
         pMsg->AddValue ( "port", value );
 
-        pMsg->AddValue ( "remote-ip", m_ip.toString() );
+        pMsg->AddValue ( "remote-ip", m_interface.address().toString() );
         pMsg->AddValue ( "version", _version );
 
         TxMsg ( pMsg );
