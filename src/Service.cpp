@@ -159,8 +159,8 @@ Service::Service
 	s_pInstance = this;
 
 	// Create the events to control the application
-	m_hActive = CreateEvent( NULL, TRUE, TRUE, NULL );
-	m_hExit = CreateEvent( NULL, TRUE, FALSE, NULL );
+	m_hActive = CreateEvent( NULL, true, true, NULL );
+	m_hExit = CreateEvent( NULL, true, false, NULL );
 
 	m_dispatchTable[0].lpServiceName = new char[m_serviceName.size()+1];
 	strcpy( m_dispatchTable[0].lpServiceName, m_serviceName.c_str() );

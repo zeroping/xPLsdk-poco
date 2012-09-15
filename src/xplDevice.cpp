@@ -159,7 +159,7 @@ xplDevice::xplDevice
 
 	SetCompleteId();
 
-   m_hRxInterrupt = new Poco::Event(FALSE);
+   m_hRxInterrupt = new Poco::Event(false);
 
 }
 

@@ -58,8 +58,8 @@
 #define NULL 0
 
 #define HANDLE void*
-#define TRUE true
-#define FALSE false
+#define true true
+#define false false
 #include <inttypes.h>
 
 // Basic types
