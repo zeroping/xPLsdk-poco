@@ -65,12 +65,21 @@ public:
 class xplComms
 {
 public:
-	/**
-	 * Destroys an xplComms object.
-	 * @param _pComms object to be deleted.
-	 */
-	static void Destroy( xplComms* _pComms );
+    
+    static xplComms* instance();
+    
+// 	/**
+// 	 * Destroys an xplComms object.
+// 	 * @param _pComms object to be deleted.
+// 	 */
+// 	static void Destroy( xplComms* _pComms );
 
+    /**
+     * Destructor.  Only to be called via the Destroy method.
+     * @see Destroy
+     */
+    virtual ~xplComms();
+    
 	/**
 	 * Sends an xPL message.
 	 * @param _pMsg pointer to a completed xplMsg object describing the
@@ -79,7 +88,7 @@ public:
 	 * @return True if the message was sent successfully.
 	 * @see xplMsg
 	 */
-	virtual bool TxMsg( xplMsg* _pMsg ) = 0;
+	virtual bool TxMsg( xplMsg& _pMsg ) = 0;
 
 	/** 
 	 * Receive an xPL message.  This function will block until either a
@@ -130,11 +139,7 @@ protected:
 	 */
 	xplComms();
 	
-	/**
-	 * Destructor.  Only to be called via the Destroy method.
-	 * @see Destroy
-	 */
-	virtual ~xplComms();
+
 
 	/** 
 	 * Initialises the underlying communications objects

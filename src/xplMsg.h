@@ -45,6 +45,10 @@
 #include "xplCore.h"
 #include "xplRef.h"
 #include "xplMsgItem.h"
+#include "Poco/RefCountedObject.h"
+
+using namespace Poco;
+
 
 namespace xpl
 {
@@ -70,44 +74,58 @@ namespace xpl
  * Once created, sending the message is a simple matter of passing it to the
  * xplDevice::SendMessage method
  */
-class xplMsg: public xplRef
+class xplMsg: public RefCountedObject
 {
 public:
-    /**
-	 * Creates an xplMsg.
-	 * Creates an xplMsg object from raw message data, exactly as 
-	 * would be sent/received over the network.  It also allows the creation of
-	 * an xplMsg object from a char string. For example, sprintf could be used
-	 * to assemble the raw message, which would then be converted to an xplMsg 
-	 * object by a call to this method.
-	 * @param _pBuffer pointer to the buffer containing the raw message data.
-	 * @return If the buffer contained valid xPL message data, this method returns
-	 * a pointer to a new xplMsg object, otherwise NULL is returned.  The caller 
-	 * is responsible for deleting any return object through a call to xplMsg::Release.
-	 * @see Destroy, GetAsRawData
-	 */
-	static xplMsg* Create( int8 const* _pBuffer );
-
-    /**
-	 * Creates an xplMsg.
-	 * Creates a skeleton xPL message.  Once created, the individual name=value pairs 
-	 * that make up the message body are added through successive calls to 
-	 * xplMsg::AddValue.
-	 * @param _type  message type.  Must be one of "xpl-cmnd", "xpl-trig" or "xpl-stat".
-	 * @param _source message sender.  Complete ID of the sending application
-	 * (in the form vendor-device.instance).
-	 * @param _target message destination.  Complete ID of the message destination
-	 * (in the form vendor-device.instance), or "*" to send to all.
-	 * @param _schemaClass message schema class.  First part of the xPL message 
-	 * schema (for example, the "x10" in "x10.basic").
-	 * @param _schemaType message schema type.  Second part of the xPL message 
-	 * schema (for example, the "basic" in "x10.basic").
-	 * @return A new xplMsg object, if the parameters are all valid.  Otherwise 
-	 * the method returns NULL.  The caller is responsible for deleting any returned
-	 * object through a call to xplMsg::Release.
-	 * @see Destroy
-	 */
-	static xplMsg* Create( string const& _type, string const& _source, string const& _target, string const& _schemaClass, string const& _schemaType );
+    
+//     xplMsg::xplMsg();
+    
+    xplMsg( 
+    string const& _type, 
+    string const& _source, 
+    string const& _target, 
+    string const& _schemaClass,
+    string const& _schemaType
+    );
+    
+    xplMsg( string str );
+    
+    
+//     /**
+// 	 * Creates an xplMsg.
+// 	 * Creates an xplMsg object from raw message data, exactly as 
+// 	 * would be sent/received over the network.  It also allows the creation of
+// 	 * an xplMsg object from a char string. For example, sprintf could be used
+// 	 * to assemble the raw message, which would then be converted to an xplMsg 
+// 	 * object by a call to this method.
+// 	 * @param _pBuffer pointer to the buffer containing the raw message data.
+// 	 * @return If the buffer contained valid xPL message data, this method returns
+// 	 * a pointer to a new xplMsg object, otherwise NULL is returned.  The caller 
+// 	 * is responsible for deleting any return object through a call to xplMsg::Release.
+// 	 * @see Destroy, GetAsRawData
+// 	 */
+// 	static xplMsg* Create( int8 const* _pBuffer );
+// 
+//     /**
+// 	 * Creates an xplMsg.
+// 	 * Creates a skeleton xPL message.  Once created, the individual name=value pairs 
+// 	 * that make up the message body are added through successive calls to 
+// 	 * xplMsg::AddValue.
+// 	 * @param _type  message type.  Must be one of "xpl-cmnd", "xpl-trig" or "xpl-stat".
+// 	 * @param _source message sender.  Complete ID of the sending application
+// 	 * (in the form vendor-device.instance).
+// 	 * @param _target message destination.  Complete ID of the message destination
+// 	 * (in the form vendor-device.instance), or "*" to send to all.
+// 	 * @param _schemaClass message schema class.  First part of the xPL message 
+// 	 * schema (for example, the "x10" in "x10.basic").
+// 	 * @param _schemaType message schema type.  Second part of the xPL message 
+// 	 * schema (for example, the "basic" in "x10.basic").
+// 	 * @return A new xplMsg object, if the parameters are all valid.  Otherwise 
+// 	 * the method returns NULL.  The caller is responsible for deleting any returned
+// 	 * object through a call to xplMsg::Release.
+// 	 * @see Destroy
+// 	 */
+// 	static xplMsg* Create( string const& _type, string const& _source, string const& _target, string const& _schemaClass, string const& _schemaType );
 
 	/**
 	 * Adds a new name=value pair to the message body.
@@ -237,7 +255,7 @@ public:
 	 * @return The size of the message buffer in bytes.
  	 * @see Create
 	 */
-	uint32 GetRawData( int8** _pBuffer );
+	string GetRawData( );
 
 	/**
 	 * Gets the hop count of the message.
@@ -261,7 +279,7 @@ public:
 	 * @return A string containing the message source.
 	 * @see SetSource.
 	 */
-	string const& GetSource()const{ return m_source; }
+  const XPLAddress& GetSource()const{ return m_source; }
 
 	/**
 	 * Gets the message target.  The target is a string made
@@ -272,7 +290,7 @@ public:
 	 * @return A string containing the message target.
  	 * @see SetTarget.
 	 */
-	string const& GetTarget()const{ return m_target; }
+  const XPLAddress& GetTarget()const{ return m_target; }
 
 	/**
 	 * Gets the schema class.  An xPL message schema name has two parts
@@ -321,7 +339,7 @@ public:
 	 * @see GetSource.
 	 */
 	bool SetSource( string const& _source );
-
+  bool SetSource( XPLAddress const& _source );
 	/**
 	 * Sets the message target.  The target is a string made
 	 * from the vendor, device and instance IDs of the message
@@ -334,7 +352,7 @@ public:
 	 * @see GetTarget.
 	 */
 	bool SetTarget( string const& _target );
-
+  bool SetTarget( XPLAddress const& _target );
 	/**
 	 * Sets the schema class.  An xPL message schema name has two parts
 	 * separated by a period,  The schema class is the left hand part.
@@ -392,11 +410,14 @@ private:
 	 */
 	void InvalidateRawData();
 
+  //handles reading in data from a raw message
+  void ParseFromString(string);
+  
 	// Header elements
 	int32						m_hop;
 	string						m_type;
-	string						m_source;
-	string						m_target;
+  XPLAddress						m_source;
+  XPLAddress						m_target;
 
 	// Body elements
 	string						m_schemaClass;
@@ -404,8 +425,7 @@ private:
 	vector<xplMsgItem*>			m_msgItems;
 
 	// Raw data
-	int8*						m_pBuffer;
-	uint32						m_bufferSize;
+	string						m_raw;
 
 	// Reference counting
 	uint32						m_refCount;

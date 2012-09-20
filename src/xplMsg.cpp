@@ -35,6 +35,7 @@
 #include "xplStringUtils.h"
 #include "xplMsg.h"
 #include <iostream>
+#include <sstream>
 
 using namespace xpl;
 
@@ -56,13 +57,36 @@ string const xplMsg::c_xplTargetAll = "*";
 ***************************************************************************/
 
 xplMsg::xplMsg():
-	m_pBuffer( NULL ),
-	m_bufferSize( 0 ),
 	m_hop( 1 ),
 	m_refCount( 1 )
 {
 }
 
+xplMsg::xplMsg( 
+string const& _type, 
+string const& _source, 
+string const& _target, 
+string const& _schemaClass,
+string const& _schemaType
+):
+m_hop( 1 ),
+m_refCount( 1 )
+{
+    SetType( _type );
+    SetSource( _source );
+    SetTarget( _target );
+    SetSchemaClass( _schemaClass );
+    SetSchemaType( _schemaType );
+}
+
+xplMsg::xplMsg( string str ) {
+    
+    ParseFromString(str);
+    
+}
+
+
+    
 
 /***************************************************************************
 ****																	****
@@ -79,7 +103,6 @@ xplMsg::~xplMsg()
 		iter = m_msgItems.erase( iter );
 	}
 
-	delete [] m_pBuffer;
 }
 
 
@@ -89,149 +112,110 @@ xplMsg::~xplMsg()
 ****																	****
 ***************************************************************************/
 
-xplMsg* xplMsg::Create
-( 
-	int8 const* _pBuffer 
-)
-{
-	// Create a new xplMsg object
-	xplMsg* pMsg = new xplMsg;
-
-	// Copy and convert the buffer lower case
-	// string str = StringToLower( _pBuffer );
-	string str = _pBuffer;	// No lower case yet - we only want it for names, not values.
-    	
-	// Read the message type
-	string line;
-	int32 pos = StringReadLine( str, 0, &line );
-	pMsg->SetType( line );
-
-	// Skip the opening brace
-	pos = StringReadLine( str, pos, &line );
-	if( c_xplOpenBrace != line )
-	{
-		// Opening brace not found
-		goto xplMsgCreateFailed;
-	}
-
-	// Read the name-value pairs	from the header
-	while( 1 )
-	{
-		string name;
-		string value;
-
-		pos = ReadNameValuePair( str, pos, &name, &value );
-
-		if( c_xplCloseBrace == name )
-		{
-			// Closing brace found
-			break;
-		}
-
-		if( c_xplHop == name )
-		{
-			pMsg->SetHop( atol( value.c_str() ) );
-		}
-		else if( c_xplSource == name )
-		{
-			pMsg->SetSource( value );
-		}
-		else if( c_xplTarget == name )
-		{
-			pMsg->SetTarget( value );
-		}
-		else
-		{
-			// Invalid header item
-			goto xplMsgCreateFailed;
-		}
-	}
-
-	// Read the schema class and type
-	{
-		string schemaClass;
-		string schemaType;
-		pos = StringReadLine( str, pos, &line );
+void xplMsg::ParseFromString(string str) {
+    // Read the message type
+    string line;
+    int32 pos = StringReadLine( str, 0, &line );
+    SetType( line );
+    
+    // Skip the opening brace
+    pos = StringReadLine( str, pos, &line );
+    if( c_xplOpenBrace != line )
+    {
+        // Opening brace not found
+        goto xplMsgCreateFailed;
+    }
+    
+    // Read the name-value pairs  from the header
+    while( 1 )
+    {
+        string name;
+        string value;
+        
+        pos = ReadNameValuePair( str, pos, &name, &value );
+        
+        if( c_xplCloseBrace == name )
+        {
+            // Closing brace found
+            break;
+        }
+        
+        if( c_xplHop == name )
+        {
+            SetHop( atol( value.c_str() ) );
+        }
+        else if( c_xplSource == name )
+        {
+            SetSource( value );
+        }
+        else if( c_xplTarget == name )
+        {
+            SetTarget( value );
+        }
+        else
+        {
+            // Invalid header item
+            goto xplMsgCreateFailed;
+        }
+    }
+    
+    // Read the schema class and type
+    {
+        string schemaClass;
+        string schemaType;
+        pos = StringReadLine( str, pos, &line );
         StringSplit( line, '.', &schemaClass, &schemaType );
-		pMsg->SetSchemaClass( schemaClass );
-		pMsg->SetSchemaType( schemaType );
-	}
-
-	// Read the message body
-	// Skip the opening brace
-	pos = StringReadLine( str, pos, &line );
-	if( c_xplOpenBrace != line )
-	{
-		// Opening brace not found
-		goto xplMsgCreateFailed;
-	}
-
-	// Read the name-value pairs
-	while( 1 )
-	{
-		string name;
-		string value;
-
-		pos = ReadNameValuePair( str, pos, &name, &value );
-
-		if( name.empty() )
-		{
-			// Reached the end of the data without hitting a 
-			// closing brace.  The message is malformed.
-			goto xplMsgCreateFailed;
-		}
-
-		if( c_xplCloseBrace == name )
-		{
-			// Closing brace found
-			break;
-		}
-
-		// Add the name=value pair to the message
-		pMsg->AddValue( name, value );
-	}
-
-	// Copy the original raw data
-	pMsg->m_pBuffer = new int8[pos+1];
-	memcpy( pMsg->m_pBuffer, _pBuffer, pos );
-	pMsg->m_pBuffer[pos] = 0;
-	pMsg->m_bufferSize = pos;
-
-	// Message successfully read from buffer
-	return( pMsg );
-
-	// Error occurred reading data
-xplMsgCreateFailed:
-	delete pMsg;
-	return( NULL );
+        SetSchemaClass( schemaClass );
+        SetSchemaType( schemaType );
+    }
+    
+    // Read the message body
+    // Skip the opening brace
+    pos = StringReadLine( str, pos, &line );
+    if( c_xplOpenBrace != line )
+    {
+        // Opening brace not found
+        goto xplMsgCreateFailed;
+    }
+    
+    // Read the name-value pairs
+    while( 1 )
+    {
+        string name;
+        string value;
+        
+        pos = ReadNameValuePair( str, pos, &name, &value );
+        
+        if( name.empty() )
+        {
+            // Reached the end of the data without hitting a 
+            // closing brace.  The message is malformed.
+            goto xplMsgCreateFailed;
+        }
+        
+        if( c_xplCloseBrace == name )
+        {
+            // Closing brace found
+            break;
+        }
+        
+        // Add the name=value pair to the message
+        AddValue( name, value );
+    }
+    
+    // Copy the original raw data
+    m_raw = str;
+    
+    // Message successfully read from buffer
+    return;
+    
+    // Error occurred reading data
+    xplMsgCreateFailed:
+    cout << "ERROR: failed to parse message!\n";
+    
 }
 
 
-/***************************************************************************
-****																	****
-****	xplMsg::Create													****
-****																	****
-***************************************************************************/
-
-xplMsg* xplMsg::Create
-( 
-	string const& _type, 
-	string const& _source, 
-	string const& _target, 
-	string const& _schemaClass,
-	string const& _schemaType
-)
-{
-	xplMsg* pMsg = new xplMsg();
-
-	pMsg->SetType( _type );
-	pMsg->SetSource( _source );
-	pMsg->SetTarget( _target );
-	pMsg->SetSchemaClass( _schemaClass );
-	pMsg->SetSchemaType( _schemaType );
-
-	return( pMsg );
-}
 
 
 /***************************************************************************
@@ -240,63 +224,47 @@ xplMsg* xplMsg::Create
 ****																	****
 ***************************************************************************/
 
-uint32 xplMsg::GetRawData
-( 
-	int8** _pBuffer 
-)
+string xplMsg::GetRawData( )
 {
-	if( NULL == m_pBuffer )
+	if( m_raw.size()==0)
 	{
-		// Header
-		m_bufferSize = (uint32)( m_type.size() + 1 + m_source.size() + m_target.size() );
-		m_bufferSize += 26;	// For the "{", "hop=", "source=", "target=", "}" and the '\n's on the end of each line
+    ostringstream msgstream;
+    msgstream << m_type << "\n";
+    msgstream << "{\n";
+    msgstream << "hop=" << m_hop << "\n";
+    msgstream << "source=" << m_source.toString() << "\n";
+    msgstream << "target=" << m_target.toString() << "\n";
+    msgstream << "}\n";
+    msgstream << m_schemaClass<<"." << m_schemaType << "\n";
+    msgstream << "{\n";
 
-		// Body
-		m_bufferSize += (uint32)( m_schemaClass.size() + m_schemaType.size() );
-		m_bufferSize += 6;	// For the . between the schema class and type, the "{", "}" and the '\n's on those 3 lines
+    
+// 		sprintf( m_pBuffer, 
+// 				"%s\n{\nhop=%d\nsource=%s\ntarget=%s\n}\n%s.%s\n{\n", 
+// 				m_type.c_str(), 
+// 				m_hop, 
+// 				m_source.c_str(), 
+// 				m_target.c_str(), 
+// 				m_schemaClass.c_str(), 
+// 				m_schemaType.c_str() 
+// 				);
 
-		vector<xplMsgItem*>::const_iterator iter;
-		for( iter = m_msgItems.begin(); iter != m_msgItems.end(); ++iter )
+		for( std::vector< xplMsgItem* >::iterator iter = m_msgItems.begin(); iter != m_msgItems.end(); ++iter )
 		{
 			xplMsgItem const* pItem = *iter;
 			for( int i=0; i<pItem->GetNumValues(); ++i )
 			{
-				m_bufferSize += (uint32)( pItem->GetName().size() + pItem->GetValue( i ).size() + 2 );	// + 2 to account for the '=' between name and value, and the '\n' at the end
-			}
-		}
-		
-		m_bufferSize++;	// We zero-terminate for safety
-
-		// Create the buffer
-		m_pBuffer = new int8[m_bufferSize];
-
-
-		sprintf( m_pBuffer, 
-				"%s\n{\nhop=%d\nsource=%s\ntarget=%s\n}\n%s.%s\n{\n", 
-				m_type.c_str(), 
-				m_hop, 
-				m_source.c_str(), 
-				m_target.c_str(), 
-				m_schemaClass.c_str(), 
-				m_schemaType.c_str() 
-				);
-
-		for( iter = m_msgItems.begin(); iter != m_msgItems.end(); ++iter )
-		{
-			xplMsgItem const* pItem = *iter;
-			for( int i=0; i<pItem->GetNumValues(); ++i )
-			{
-				sprintf( &m_pBuffer[strlen(m_pBuffer)], "%s=%s\n", pItem->GetName().c_str(), pItem->GetValue( i ).c_str() );
+				//sprintf( &m_pBuffer[strlen(m_pBuffer)], "%s=%s\n", pItem->GetName().c_str(), pItem->GetValue( i ).c_str() );
+				msgstream << pItem->GetName() << "=" << pItem->GetValue( i ) << "\n";
 			}
 		}
 
-		strcat( m_pBuffer, "}\n" );
-
-		assert( (strlen(m_pBuffer)+1) == m_bufferSize );
+    // 		strcat( m_pBuffer, "}\n" );
+    msgstream <<"}\n";
+    m_raw = msgstream.str();;
 	}
-
-	*_pBuffer = m_pBuffer;
-	return( m_bufferSize );
+	
+	return m_raw;
 }
 
 
@@ -556,6 +524,11 @@ bool xplMsg::SetType
 
 	string lowerType = StringToLower( _type );
 
+  //in case we've forgotten it...
+  if(lowerType.size()==4) {
+    lowerType = "xpl-" + lowerType;
+  }
+  
 	if( ( "xpl-trig" != lowerType )
 		&& ( "xpl-cmnd" != lowerType )
 		&& ( "xpl-stat" != lowerType ) )
@@ -581,34 +554,45 @@ bool xplMsg::SetSource
 	string const& _source 
 )
 { 
-	InvalidateRawData();
-
-	// Source must consist of vendor ID (max 8 chars), device ID 
-	// (max 8 chars) and instance ID (max 16 chars) in the form
-	// vendor-device.instance
-	string vendor;
-	string deviceInstance;
-	StringSplit( _source, '-', &vendor, &deviceInstance );
-
-	if( ( vendor.size() > 8 ) || vendor.empty() || deviceInstance.empty() )
-	{
-		assert( 0 );
-		return false;
-	}
-
-	string device;
-	string instance;
-	StringSplit( deviceInstance, '.', &device, &instance );
-
-	if( ( device.size() > 8 ) || device.empty() || ( instance.size() > 16 ) || instance.empty() )
-	{
-		assert( 0 );
-		return false;
-	}
+    // Source must consist of vendor ID (max 8 chars), device ID 
+    // (max 8 chars) and instance ID (max 16 chars) in the form
+    // vendor-device.instance
+    string vendor;
+    string deviceInstance;
+    StringSplit( _source, '-', &vendor, &deviceInstance );
     
-	// _source is of the correct format
-	m_source = StringToLower( _source ); 
-	return true;
+    if( ( vendor.size() > 8 ) || vendor.empty() || deviceInstance.empty() )
+    {
+        cout << "failing on source: " << _source << "\n";
+        assert( 0 );
+        return false;
+    }
+    m_source.vendor = vendor;
+    
+    string device;
+    string instance;
+    StringSplit( deviceInstance, '.', &device, &instance );
+    
+    if( ( device.size() > 8 ) || device.empty() || ( instance.size() > 16 ) || instance.empty() )
+    {
+        assert( 0 );
+        return false;
+    }
+    
+    m_source.device = device;
+    m_source.instance = instance;
+    //TODO lowercaser
+    return true;
+}
+
+bool xplMsg::SetSource
+( 
+XPLAddress const& _source 
+)
+{
+    InvalidateRawData();
+    m_source = _source;
+    
 }
 
 
@@ -629,7 +613,7 @@ bool xplMsg::SetTarget
 	// For broadcasts, the target can be "*"
 	if( "*" == _target )
 	{
-		m_target = _target;
+		m_target.bcast = true;
 		return( true );
 	}
 
@@ -649,7 +633,8 @@ bool xplMsg::SetTarget
 	if( vendor.size() > 8 ) {
       cout << "Vendor: " << vendor << " is out of spec\n";
   }
-
+  m_target.vendor = vendor;
+  
 	string device;
 	string instance;
 	StringSplit( deviceInstance, '.', &device, &instance );
@@ -659,10 +644,20 @@ bool xplMsg::SetTarget
 		assert( 0 );
 		return false;
 	}
-    
-	// _target is of the correct format
-	m_target = StringToLower( _target ); 
+  m_target.device = device;
+  m_target.instance = instance;
 	return true;
+  //TODO lowercaser
+}
+
+bool xplMsg::SetTarget
+( 
+XPLAddress const& _target 
+)
+{
+    InvalidateRawData();
+    m_target = _target;
+    
 }
 
 
@@ -754,9 +749,7 @@ int32 xplMsg::ReadNameValuePair
 
 void xplMsg::InvalidateRawData()
 {
-	delete [] m_pBuffer;
-	m_pBuffer = NULL;
-	m_bufferSize = 0;
+    m_raw = "";
 }
 
 
@@ -771,17 +764,16 @@ bool xplMsg::operator ==
 	xplMsg const& _rhs 
 )
 {
-	int8* pMsgDataLHS;
-	GetRawData( &pMsgDataLHS );
+	string pMsgDataLHS = GetRawData();
 
 	// I know this is pure evil, but all we are doing is filling the 
 	// raw data cache, and we do not modify the actual xPL message.
+
 	xplMsg* pNonConstRHS = const_cast<xplMsg*>( &_rhs );
 
-	int8* pMsgDataRHS;
-	pNonConstRHS->GetRawData( &pMsgDataRHS );
+	string pMsgDataRHS = pNonConstRHS->GetRawData( );
 
-	return( !strcmp( pMsgDataLHS, pMsgDataRHS ) );
+	return( pMsgDataLHS == pMsgDataRHS  );
 }
 
 

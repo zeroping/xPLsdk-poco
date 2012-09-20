@@ -112,6 +112,21 @@ class DeviceConfigNotification: public Notification
 class xplDevice : public Runnable
 {
 public:
+    
+    /**
+     * Constructor.  Only to be called via the static Create method.
+     * Parameters are as described for Create.
+     * @see Create, Destroy
+     */
+    xplDevice( string const& _vendorId, string const& _deviceId, string const& _version, bool const _configInRegistry, bool const _bFilterMsgs, xplComms* _pComms );
+    
+    /**
+     * Destructor.  Only to be called via the static Destroy method.
+     * @see Destroy, Create
+     */
+    ~xplDevice();
+    
+    
 	/**
 	 * Create an xplDevice.
 	 * The xplDevice provides the all of the core xPL functionality for an application.
@@ -162,13 +177,13 @@ public:
 	 */
 	bool Init();
 
-	/**
-	 * Deinitialises the xplDevice
-	 * @return False if the xplDevice has not been initialised,
-	 * otherwise it returns true.
-	 * @see Init
-	 */
-	bool Deinit();
+// 	/**
+// 	 * Deinitialises the xplDevice
+// 	 * @return False if the xplDevice has not been initialised,
+// 	 * otherwise it returns true.
+// 	 * @see Init
+// 	 */
+// 	bool Deinit();
 
 	/**
 	 * Pauses the xplDevice.  This method is provided to support the
@@ -332,18 +347,6 @@ private:
 	 */
 	static bool MsgCallback( xplMsg* _pMsg, void* _pContext );
 
-	/**
-	 * Constructor.  Only to be called via the static Create method.
-	 * Parameters are as described for Create.
-	 * @see Create, Destroy
-	 */
-	xplDevice( string const& _vendorId, string const& _deviceId, string const& _version, bool const _configInRegistry, bool const _bFilterMsgs, xplComms* _pComms );
-	
-	/**
-	 * Destructor.  Only to be called via the static Destroy method.
-	 * @see Destroy, Create
-	 */
-	~xplDevice();
 
 	/**
 	 * Tests whether the received message should be processed by this application

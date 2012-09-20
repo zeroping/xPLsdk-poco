@@ -72,20 +72,28 @@ namespace xpl
  * directly by the application.
  */
 class xplUDP: public xplComms
-{			   
+{
 public:
-	/**
-	 * Creates a UDP communications object.
-	 * Creates an xplUDP object that can be passed into xplDevice::Create
-	 * @param _bViaHub set this to false to bind directly to the xPL port
-	 * rather than sending messages via the hub.  This should only be
-	 * done when writing a hub application.
-	 * @return Pointer to a new xplUDP object, or NULL if an error occured
-	 * during initialisation.
-	 * @see xplComms::Destroy, xplDevice::Create
-	 */
-	static xplUDP* Create( bool const _bViaHub = true );
+// 	/**
+// 	 * Creates a UDP communications object.
+// 	 * Creates an xplUDP object that can be passed into xplDevice::Create
+// 	 * @param _bViaHub set this to false to bind directly to the xPL port
+// 	 * rather than sending messages via the hub.  This should only be
+// 	 * done when writing a hub application.
+// 	 * @return Pointer to a new xplUDP object, or NULL if an error occured
+// 	 * during initialisation.
+// 	 * @see xplComms::Destroy, xplDevice::Create
+// 	 */
+// 	static xplUDP* Create( bool const _bViaHub = true );
+    static xplUDP* instance();
 
+    /**
+     * Destructor.  Only to be called via the xplComms::Destroy method
+     * @see xplComms::Destroy
+     */
+    virtual ~xplUDP();
+    
+    
 	/**
 	 * Checks an IP address to see if it is local.
 	 * @param _ip 32bit IP address to check.
@@ -118,22 +126,19 @@ public:
 	string GetHeartbeatIP()const{ return m_interface.address().toString(); }
 
 	// Overrides of xplComms' methods.  See xplComms.h for documentation.
-	virtual bool TxMsg( xplMsg* _pMsg );
+	virtual bool TxMsg( xplMsg& _pMsg );
 	virtual xplMsg* RxMsg( Poco::Event* exitevts, uint32 _timeout = 0 );
 	virtual void SendHeartbeat( string const& _source, uint32 const _interval, string const& _version );
 
+  /**
+   * Constructor.  Only to be called via the static Create method
+   * @see xplUDP::Create
+   */
+  xplUDP( bool const _bViaHub = false);
+  
+  
 protected:
-	/**
-	 * Constructor.  Only to be called via the static Create method
-	 * @see xplUDP::Create
-	 */
-	xplUDP( bool const _bViaHub );
 
-	/**
-	 * Destructor.  Only to be called via the xplComms::Destroy method
-	 * @see xplComms::Destroy
-	 */
-	virtual ~xplUDP();
 
 	virtual void SendConfigHeartbeat( string const& _source, uint32 const _interval, string const& _version );
 	virtual bool Connect();

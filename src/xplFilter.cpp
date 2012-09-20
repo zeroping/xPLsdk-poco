@@ -124,7 +124,7 @@ bool xplFilter::Allow( xplMsg const& _msg )const
 		// Extract the vendor from the message source
 		string vendor;
 		string deviceInstance;
-		StringSplit( _msg.GetSource(), '-', &vendor, &deviceInstance );
+		StringSplit( _msg.GetSource().toString(), '-', &vendor, &deviceInstance );
 
 		// Check the message source vendor
 		if( ( m_filterElementMask & FilterElement_Vendor ) 

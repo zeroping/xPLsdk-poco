@@ -42,6 +42,8 @@
 // #include "EventLog.h"
 // #include "RegUtils.h"
 
+#include "Poco/SingletonHolder.h"
+
 #include <iostream>
 
 using namespace xpl;
@@ -57,23 +59,33 @@ uint16 const xplUDP::c_xplHubPort = 3865;
 ****																	****
 ***************************************************************************/
 
-xplUDP* xplUDP::Create
-(
-    bool const _bViaHub
-)
-{
-    
-    // Create the xplUDP object
-    xplUDP* pObj = new xplUDP ( _bViaHub );
-    if ( !pObj->Connect() )
-    {
-        cout << "xplUDP fail destroy\n";
-        xplUDP::Destroy ( pObj );
-        pObj = NULL;
-    }
+// xplUDP* xplUDP::Create
+// (
+//     bool const _bViaHub
+// )
+// {
+//     
+//     // Create the xplUDP object
+//     xplUDP* pObj = new xplUDP ( _bViaHub );
+//     if ( !pObj->Connect() )
+//     {
+//         cout << "xplUDP fail destroy\n";
+//         xplUDP::Destroy ( pObj );
+//         pObj = NULL;
+//     }
+// 
+//     return ( pObj );
+// }
 
-    return ( pObj );
+
+namespace{
+    static Poco::SingletonHolder<xplUDP> sh;
 }
+
+xplUDP* xplUDP::instance() {
+    return sh.get();
+}
+
 
 
 /***************************************************************************
@@ -112,6 +124,8 @@ xplUDP::xplUDP
     }
     
     cout << "our hbeat address is " << m_interface.address().toString() << "\n";
+    
+    Connect();
 
 }
 
@@ -124,6 +138,11 @@ xplUDP::xplUDP
 
 xplUDP::~xplUDP()
 {
+    cout << "destroying xplUDP\n";
+    if (IsConnected()) {
+        Disconnect();
+    }
+    
     assert ( !IsConnected() );
 
     // Finished with the sockets
@@ -139,7 +158,7 @@ xplUDP::~xplUDP()
 
 bool xplUDP::TxMsg
 (
-    xplMsg* _pMsg
+    xplMsg& _pMsg
 )
 {
     bool bRetVal = false;
@@ -148,8 +167,8 @@ bool xplUDP::TxMsg
     if ( IsConnected() )
     {
         // Build the complete message
-        int8* pMsgBuffer;
-        uint32 dataLength = _pMsg->GetRawData ( &pMsgBuffer );
+//         int8* pMsgBuffer;
+//         uint32 dataLength = _pMsg->GetRawData ( &pMsgBuffer );
 
         IPAddress lbcast = m_interface.broadcastAddress();
 
@@ -160,7 +179,8 @@ bool xplUDP::TxMsg
         dgs.setBroadcast(true);
         cout << "tx message from " << sourceAddress.toString();
         cout << "  to " << destAddress.toString() << "\n";
-        dgs.sendTo(pMsgBuffer,dataLength, destAddress);
+        
+        dgs.sendTo(_pMsg.GetRawData().c_str() , _pMsg.GetRawData().size(), destAddress);
         
     }
 
@@ -374,7 +394,7 @@ void xplUDP::SendHeartbeat
     string const& _version
 )
 {
-    xplMsg* pMsg = xplMsg::Create ( xplMsg::c_xplStat, _source, "*", "hbeat", "app" );
+    AutoPtr<xplMsg> pMsg = new xplMsg( xplMsg::c_xplStat, _source, "*", "hbeat", "app" );
     if ( pMsg )
     {
         int8 value[16];
@@ -388,8 +408,7 @@ void xplUDP::SendHeartbeat
         pMsg->AddValue ( "remote-ip", m_interface.address().toString() );
         pMsg->AddValue ( "version", _version );
 
-        TxMsg ( pMsg );
-        pMsg->Release();
+        TxMsg (*pMsg );
     }
 }
 
@@ -422,7 +441,7 @@ void xplUDP::SendConfigHeartbeat
     string const& _version
 )
 {
-    xplMsg* pMsg = xplMsg::Create ( xplMsg::c_xplStat, _source, "*", "config", "app" );
+    AutoPtr<xplMsg> pMsg = new xplMsg( xplMsg::c_xplStat, _source, "*", "config", "app" );
     if ( pMsg )
     {
         int8 value[16];
@@ -436,14 +455,13 @@ void xplUDP::SendConfigHeartbeat
         pMsg->AddValue ( "remote-ip", m_interface.address().toString() );
         pMsg->AddValue ( "version", _version );
 
-        TxMsg ( pMsg );
-        pMsg->Release();
+        TxMsg ( *pMsg );
     }
 }
 
 
 void xplUDP::ListenForPackets() {
-//     cout << "started listening\n";
+     cout << "started listening\n";
     Poco::Timespan timeout = Poco::Timespan(0,0,0,1,0);
     m_sock.setReceiveTimeout(timeout);
     while( this->IsConnected()){//TODO locking here
@@ -486,7 +504,7 @@ void xplUDP::ListenForPackets() {
 
         // 
         //     // Create an xplMsg object from the received data
-            xplMsg* pMsg = xplMsg::Create ( buffer );
+                AutoPtr<xplMsg> pMsg = new xplMsg( buffer );
 //             incommingQueueLock.lock();
 //             incommingQueue.push(pMsg);
 //             cout << "added packet to queue of " << incommingQueue.size() << "\n";
@@ -494,7 +512,6 @@ void xplUDP::ListenForPackets() {
 //             m_rxEvent.set();
 //             
             rxNotificationCenter.postNotification(new MessageRxNotification(pMsg));
-            pMsg->Release();
 //             return ( pMsg );
         
     }

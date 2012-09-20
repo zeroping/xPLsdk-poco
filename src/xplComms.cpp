@@ -36,6 +36,7 @@
 #include <iostream>
 #include <Poco/Thread.h>
 
+
 using namespace xpl;
 
 uint32 const xplComms::c_msgBufferSize = 2048;
@@ -46,7 +47,7 @@ uint32 const xplComms::c_msgBufferSize = 2048;
 ****	xplComms::Destroy												****
 ****																	****
 ***************************************************************************/
-
+/*
 void xplComms::Destroy
 ( 
 	xplComms* _pComms 
@@ -64,7 +65,7 @@ void xplComms::Destroy
 //   cout << "deleting pcomms in thread " << Thread::currentTid() << " \n";
 	delete _pComms;
 //   cout << "deleted pcomms in thread " << Thread::currentTid() << " \n";
-}
+}*/
 
 
 /***************************************************************************

@@ -57,44 +57,44 @@ uint32 const xplDevice::c_rapidHeartbeatSlowInterval = 30;	// once every thirty 
 ****																	****
 ***************************************************************************/
 
-xplDevice* xplDevice::Create
-( 
-	string const& _vendorId, 
-	string const& _deviceId, 
-	string const& _version, 
-	bool const _configInRegistry,
-	bool const _bFilterMsgs,
-	xplComms* _pComms
-)
-{
-	if( NULL == _pComms )
-	{
-		assert(0);
-		return NULL;
-	}
-
-	// Create a new xplDevice
-	xplDevice* pDevice = new xplDevice( _vendorId, _deviceId, _version, _configInRegistry, _bFilterMsgs, _pComms );
-
-	// Add the configurable items
-	xplConfigItem* pItem;
-
-	pItem = new xplConfigItem( "newconf", "reconf" );
-	pItem->AddValue( "default" );
-	pDevice->AddConfigItem( pItem );
-
-	pItem = new xplConfigItem( "interval", "reconf" );
-	pItem->AddValue( "5" );
-	pDevice->AddConfigItem( pItem );
-
-	pItem = new xplConfigItem( "group", "option", 16 );
-	pDevice->AddConfigItem( pItem );
-
-	pItem = new xplConfigItem( "filter", "option", 16 );
-	pDevice->AddConfigItem( pItem );
-
-	return( pDevice );
-}
+// xplDevice* xplDevice::Create
+// ( 
+// 	string const& _vendorId, 
+// 	string const& _deviceId, 
+// 	string const& _version, 
+// 	bool const _configInRegistry,
+// 	bool const _bFilterMsgs,
+// 	xplComms* _pComms
+// )
+// {
+// 	if( NULL == _pComms )
+// 	{
+// 		assert(0);
+// 		return NULL;
+// 	}
+// 
+// 	// Create a new xplDevice
+// 	xplDevice* pDevice = new xplDevice( _vendorId, _deviceId, _version, _configInRegistry, _bFilterMsgs, _pComms );
+// 
+// 	// Add the configurable items
+// 	xplConfigItem* pItem;
+// 
+// 	pItem = new xplConfigItem( "newconf", "reconf" );
+// 	pItem->AddValue( "default" );
+// 	pDevice->AddConfigItem( pItem );
+// 
+// 	pItem = new xplConfigItem( "interval", "reconf" );
+// 	pItem->AddValue( "5" );
+// 	pDevice->AddConfigItem( pItem );
+// 
+// 	pItem = new xplConfigItem( "group", "option", 16 );
+// 	pDevice->AddConfigItem( pItem );
+// 
+// 	pItem = new xplConfigItem( "filter", "option", 16 );
+// 	pDevice->AddConfigItem( pItem );
+// 
+// 	return( pDevice );
+// }
 
 
 /***************************************************************************
@@ -102,7 +102,7 @@ xplDevice* xplDevice::Create
 ****	xplDevice::Destroy												****
 ****																	****
 ***************************************************************************/
-
+/*
 void xplDevice::Destroy
 ( 
 	xplDevice* _pDevice 
@@ -120,7 +120,7 @@ void xplDevice::Destroy
 //   cout << "deleting device in thread " << Thread::currentTid() << " \n";
 	delete _pDevice;
 //   cout << "deleted device in thread " << Thread::currentTid() << " \n";
-}
+}*/
 
 
 /***************************************************************************
@@ -172,18 +172,33 @@ xplDevice::xplDevice
 
 xplDevice::~xplDevice( void )
 {
+    cout << "destroying xpldevice\n";
+    if( m_bInitialised )
+    {
+        m_bExitThread = true;
+        //cout << "trying to trigger exit of hbeat thread with m_hRxInterrupt: " << m_hRxInterrupt << "\n";
+        m_hRxInterrupt->set();
+        
+        // Wait for the thread to exit
+        m_hThread.join();
+        //cout << "joined with hbeat thread\n";
+        
+        //Delete the filters
+        uint32 i;
+        for( i=0; i<m_filters.size(); ++i )
+        {
+            delete m_filters[i];
+        }
+        
+        m_bInitialised = false;
+    }
 
-  //xplComms::Destroy(m_pComms);  
-  m_bExitThread = true;
-  m_hRxInterrupt->set();
-  
-
- 	//Delete the config items
-	for( int i=0; i<m_configItems.size(); ++i )
-	{
-		delete m_configItems[i];
-	}
-  delete m_hRxInterrupt ;
+    //Delete the config items
+    for( int i=0; i<m_configItems.size(); ++i )
+    {
+        delete m_configItems[i];
+    }
+    delete m_hRxInterrupt ;
 }
 
 
@@ -217,38 +232,6 @@ bool xplDevice::Init()
 	return true;
 }
 
-
-/***************************************************************************
-****																	****
-****	xplDevice::Deinit												****
-****																	****
-***************************************************************************/
-
-bool xplDevice::Deinit()
-{
-	if( !m_bInitialised )
-	{
-		return false;
-	}
-
-	m_bExitThread = true;
-  //cout << "trying to trigger exit of hbeat thread with m_hRxInterrupt: " << m_hRxInterrupt << "\n";
-  m_hRxInterrupt->set();
-  
-	// Wait for the thread to exit
-  m_hThread.join();
-  //cout << "joined with hbeat thread\n";
-
-	//Delete the filters
-	uint32 i;
-	for( i=0; i<m_filters.size(); ++i )
-	{
-		delete m_filters[i];
-	}
-
-	m_bInitialised = false;
-	return true;
-}
 
 
 /***************************************************************************
@@ -635,7 +618,7 @@ bool xplDevice::IsMsgForThisApp
 )
 {
 	// Reject any messages that were originally broadcast by us
-	if( _pMsg->GetSource() == m_completeId )
+	if( _pMsg->GetSource().toString() == m_completeId )
 	{
 		// If we're waiting for a hub, then receiving a 
 		// reflected message (which will be our heartbeat) 
@@ -650,7 +633,7 @@ bool xplDevice::IsMsgForThisApp
 	}
 
 	// Check the target.  
-	string const& target = _pMsg->GetTarget();
+	string const& target = _pMsg->GetTarget().toString();
 
 	// Is the message for all devices
 	if( target != string( "*" ) )
@@ -895,7 +878,7 @@ bool xplDevice::HandleMsgForUs
 
 void xplDevice::SendConfigList()const
 {
-	xplMsg* pMsg = xplMsg::Create( xplMsg::c_xplStat, m_completeId, "*", "config", "list" );
+	AutoPtr<xplMsg> pMsg = new xplMsg( xplMsg::c_xplStat, m_completeId, "*", "config", "list" );
 
 	if( pMsg )
 	{
@@ -917,10 +900,8 @@ void xplDevice::SendConfigList()const
 
 		// Call xplComms::TxMsg directly, since we may be in config mode 
 		// and xplDevice::SendMessage would block it.
-		m_pComms->TxMsg( pMsg );
+		m_pComms->TxMsg( *pMsg);
 		
-		// We're done with the message
-		pMsg->Release();
 	}
 }
 
@@ -949,7 +930,7 @@ void xplDevice::SendConfigList()const
 
 void xplDevice::SendConfigCurrent()const
 {
-	xplMsg* pMsg = xplMsg::Create( xplMsg::c_xplStat, m_completeId, "*", "config", "current" );
+    AutoPtr<xplMsg> pMsg = new xplMsg( xplMsg::c_xplStat, m_completeId, "*", "config", "current" );
 
 	if( pMsg )
 	{
@@ -964,10 +945,8 @@ void xplDevice::SendConfigCurrent()const
 
 		// Call xplComms::TxMsg directly, since we may be in config mode 
 		// and xplDevice::SendMessage would block it.
-		m_pComms->TxMsg( pMsg );
+		m_pComms->TxMsg( *pMsg );
 
-		// We're done with the message
-		pMsg->Release();
 	}
 }
 
@@ -1006,7 +985,7 @@ bool xplDevice::SendMsg
 // 	//LeaveCriticalSection( &m_criticalSection );
 //   m_criticalSection.unlock();
     //I see no reason to wait to send it...
-    m_pComms->TxMsg( _pMsg );
+    m_pComms->TxMsg( *_pMsg );
 	
 	return true;
 }

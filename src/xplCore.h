@@ -35,7 +35,7 @@
 #define XPLCORE_H                       
 
 #include <assert.h>
-
+#include <string>
 #ifdef _MSC_VER
 	#pragma once
     
@@ -83,6 +83,34 @@ namespace xpl
 {
     using namespace std;
 }
+using namespace std;
+
+class XPLAddress
+{
+public:
+    bool bcast;
+    string vendor, device, instance;
+    XPLAddress(){
+        vendor="*";
+        device="*";
+        instance="*";
+        bcast = false;
+    }
+    string toString() const {
+        if (bcast) {
+            return "*";
+        }
+        return vendor + "-" + device + "." + instance; 
+    }
+};
+
+class XPLSchema
+{
+public:
+    string schema, type;
+};
+
+
 
 // Fix for namespace-related compiler bug
 #ifdef _MSC_VER
