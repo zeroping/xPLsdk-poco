@@ -624,6 +624,7 @@ bool xplMsg::SetTarget
 	string deviceInstance;
 	StringSplit( _target, '-', &vendor, &deviceInstance );
 
+  
 	//if( ( vendor.size() > 8 ) || vendor.empty() || deviceInstance.empty() )
   if( vendor.empty() || deviceInstance.empty() )
 	{
