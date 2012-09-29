@@ -53,6 +53,9 @@
 #include <fstream>
 #include "xplCore.h"
 #include "xplComms.h"
+#include "Poco/Logger.h"
+#include "Poco/NumberFormatter.h"
+
 
 using namespace Poco;
 
@@ -462,7 +465,7 @@ private:
 	static uint32 const		c_rapidHeartbeatTimeout;		// two minutes, after which the rate drops to
 	static uint32 const		c_rapidHeartbeatSlowInterval;	// once every thirty seconds.
 	
-
+	Logger& devLog;
 	
 };
 

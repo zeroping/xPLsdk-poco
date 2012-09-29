@@ -46,6 +46,9 @@
 #include "Poco/Thread.h"
 #include "Poco/RunnableAdapter.h"
 #include "Poco/Mutex.h"
+#include "Poco/Logger.h"
+#include "Poco/NumberFormatter.h"
+
 
 #include <queue>
 
@@ -178,6 +181,7 @@ private:
 	vector<Poco::Net::IPAddress>				m_localIPs;				// List of all local IP addresses for this machine
 
 	static uint16 const			c_xplHubPort;			// Standard port assigned to xPL traffic
+	Logger& commsLog;
 };
 
 }	// namespace xpl

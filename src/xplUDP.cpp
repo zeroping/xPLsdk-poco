@@ -98,6 +98,7 @@ xplUDP::xplUDP
 (
     bool const _bViaHub
 ) :
+    commsLog(Logger::get("xplsdk.comms")),
     xplComms(),
     m_bViaHub ( _bViaHub ),
     m_txPort ( c_xplHubPort ),
@@ -116,14 +117,14 @@ xplUDP::xplUDP
     
     vector<NetworkInterface>::iterator nit = netlist.begin();
     for (nit = netlist.begin(); nit != netlist.end(); ++nit) {
-        cout << "net: " << (*nit).address().toString() << " : " << (*nit).broadcastAddress().toString() << "\n";
+//         cout << "net: " << (*nit).address().toString() << " : " << (*nit).broadcastAddress().toString() << "\n";
+        poco_debug(commsLog, "network interface: " + (*nit).address().toString() +" : " + (*nit).broadcastAddress().toString());
         if (!(*nit).address().isLoopback()) {
             m_interface = (*nit);
             break;
         }
     }
-    
-    cout << "our hbeat address is " << m_interface.address().toString() << "\n";
+    poco_information(commsLog, "our hbeat address is " + m_interface.address().toString());
     
     Connect();
 
@@ -138,7 +139,7 @@ xplUDP::xplUDP
 
 xplUDP::~xplUDP()
 {
-    cout << "destroying xplUDP\n";
+//     cout << "destroying xplUDP\n";
     if (IsConnected()) {
         Disconnect();
     }
@@ -177,8 +178,10 @@ bool xplUDP::TxMsg
         Poco::Net::SocketAddress destAddress(lbcast, 3865);
         DatagramSocket dgs(sourceAddress,true);
         dgs.setBroadcast(true);
-        cout << "tx message from " << sourceAddress.toString();
-        cout << "  to " << destAddress.toString() << "\n";
+        
+        poco_debug(commsLog, "TX message from  " + sourceAddress.toString() + " to " + destAddress.toString());
+        poco_trace(commsLog, "_pMsg.GetRawData()");
+        
         
         dgs.sendTo(_pMsg.GetRawData().c_str() , _pMsg.GetRawData().size(), destAddress);
         
@@ -246,7 +249,7 @@ bool xplUDP::Connect()
     }
     m_rxPort = c_xplHubPort;
 
-    cout << "trying port " << m_rxPort << "\n";
+    poco_information(commsLog, "Trying port " + NumberFormatter::format(m_rxPort));
     Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), m_rxPort);
 
 //     // If we are not communicating via a hub (PocketPC app or the hub
@@ -259,7 +262,7 @@ bool xplUDP::Connect()
          m_sock.setBroadcast(true);
          bBound = true;
      } catch (NetException & e) {
-         cout << "can't open port " << m_rxPort << "\n"; 
+         poco_information(commsLog, "Can't open port " + NumberFormatter::format(m_rxPort));
      }
      
 //     if ( !m_bViaHub )
@@ -281,13 +284,13 @@ bool xplUDP::Connect()
                  m_sock = DatagramSocket(sa,true);
                  bBound = true;
              } catch (NetException & e) {
-                 cout << "can't open port " << m_rxPort << "\n";
+                 poco_information(commsLog, "Can't open port " + NumberFormatter::format(m_rxPort));
                  m_rxPort += 1;
              }
 
          }
      }
-     cout << "open on port " << m_rxPort << "\n";
+     poco_information(commsLog, "Opened port " + NumberFormatter::format(m_rxPort));
 //     // Set the rx socket to be non blocking
 //     {
 //          nonBlock = 1;
@@ -305,7 +308,7 @@ bool xplUDP::Connect()
 //     // Call the base class
      
      xplComms::Connect();
-     cout << "comms connected\n";
+     poco_debug(commsLog, "comms connected");
      
      listenAdapt = new RunnableAdapter<xplUDP>(*this,&xplUDP::ListenForPackets);
      listenThread.setName("packet listen thread");
@@ -461,7 +464,7 @@ void xplUDP::SendConfigHeartbeat
 
 
 void xplUDP::ListenForPackets() {
-     cout << "started listening\n";
+    poco_debug(commsLog, "started listening");
     Poco::Timespan timeout = Poco::Timespan(0,0,0,1,0);
     m_sock.setReceiveTimeout(timeout);
     while( this->IsConnected()){//TODO locking here
@@ -515,6 +518,6 @@ void xplUDP::ListenForPackets() {
 //             return ( pMsg );
         
     }
-    cout << "udp rx thread stopped\n";
+    //poco_notice(commsLog, "UDP rx thread stopped");
 }
 

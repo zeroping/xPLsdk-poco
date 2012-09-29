@@ -149,7 +149,9 @@ xplDevice::xplDevice
 	m_bExitThread( false ),
 
 	m_bWaitingForHub( true ),
-	m_rapidHeartbeatCounter( c_rapidHeartbeatTimeout/c_rapidHeartbeatFastInterval )
+	m_rapidHeartbeatCounter( c_rapidHeartbeatTimeout/c_rapidHeartbeatFastInterval ),
+  devLog(Logger::get("xplsdk.device"))
+  
 {
 	assert( m_pComms );
 
@@ -172,7 +174,7 @@ xplDevice::xplDevice
 
 xplDevice::~xplDevice( void )
 {
-    cout << "destroying xpldevice\n";
+//     cout << "destroying xpldevice\n";
     if( m_bInitialised )
     {
         m_bExitThread = true;
@@ -1081,12 +1083,11 @@ void xplDevice::run( void )
 
 		// Calculate the time (in milliseconds) until the next heartbeat
 		int32 heartbeatTimeout = (int32)(( m_nextHeartbeat - currentTime ) ); // Divide by 10000 to convert 100 nanosecond intervals to milliseconds.
-
-    cout << "sleeping till next hbeat\n";
-    m_hRxInterrupt->wait(heartbeatTimeout);
+    poco_debug(devLog, "Sleeping " + NumberFormatter::format(heartbeatTimeout/1000) + " seconds till next hbeat");
+    m_hRxInterrupt->tryWait(heartbeatTimeout);
         //Thread::sleep();
-    cout << "wakeup for next hbeat or exit interrupt\n";
-
+    poco_debug(devLog, "Woken up for hbeat or interrupt");
+    
 	}
 // 	cout << "exiting dev thread (ret)\n";
 	return;
