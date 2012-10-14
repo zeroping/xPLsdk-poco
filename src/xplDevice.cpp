@@ -1097,7 +1097,7 @@ void xplDevice::run( void )
 void xplDevice::HandleRx(MessageRxNotification* mNot)
 {
 //         cout << "device: start handle RX in thread " << Thread::currentTid() <<"\n";
-    xplMsg* pMsg = mNot->message;
+    AutoPtr<xplMsg> pMsg = mNot->message;
 //    Process any xpl message received
     if( NULL != pMsg )
     {

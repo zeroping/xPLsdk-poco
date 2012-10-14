@@ -44,6 +44,7 @@
 #include <Poco/Notification.h>
 #include <Poco/NotificationCenter.h>
 #include "xplCore.h"
+#include "xplMsg.h"
 
 using namespace Poco;
 
@@ -55,8 +56,8 @@ class xplMsg;
 class MessageRxNotification: public Notification
 {
 public:
-    MessageRxNotification(xplMsg* msgIn) {message = msgIn;}
-    xplMsg* message;
+    MessageRxNotification(AutoPtr<xplMsg> msgIn) {message = msgIn;}
+    AutoPtr<xplMsg> message;
 };
 
 /**
