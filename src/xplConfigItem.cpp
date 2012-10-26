@@ -44,15 +44,15 @@ using namespace xpl;
 ****																	****
 ***************************************************************************/
 
-bool xplConfigItem::AddValue( string const& _value )
+bool xplConfigItem::AddValue ( string const& _value )
 {
-	if( GetNumValues() >= m_maxValues )
-	{
-		return false;
-	}
+    if ( GetNumValues() >= m_maxValues )
+    {
+        return false;
+    }
 
-	xplMsgItem::AddValue( _value );
-	return true;
+    xplMsgItem::AddValue ( _value );
+    return true;
 }
 
 
@@ -128,7 +128,7 @@ bool xplConfigItem::RegistrySave( HKEY& _hKey )const
 {
 	// Values must be concatenated into a single buffer
 
-	// First calculate the size of buffer 
+	// First calculate the size of buffer
 	// required to hold all the values
 	uint32 total = 0;
 	uint32 i;
@@ -138,7 +138,7 @@ bool xplConfigItem::RegistrySave( HKEY& _hKey )const
 	}
 
 	// Array is terminated by an empty string
-	total += 1; 
+	total += 1;
 
 	// Now build the buffer
 	int8* pBuffer = new int8[total];
@@ -156,7 +156,7 @@ bool xplConfigItem::RegistrySave( HKEY& _hKey )const
 #ifdef UNICODE
 	UnicodeString unicodeStr = UnicodeString( GetName().c_str() );
 	WCHAR* pWideBuffer = new WCHAR[total];
-	MultiByteToWideChar( CP_ACP, MB_PRECOMPOSED, pBuffer, total, pWideBuffer, total<<1 ); 
+	MultiByteToWideChar( CP_ACP, MB_PRECOMPOSED, pBuffer, total, pWideBuffer, total<<1 );
 	RegSetValueEx( _hKey, unicodeStr.c_str(), 0, REG_MULTI_SZ, (uint8*)pWideBuffer, total<<1 );
 	delete [] pWideBuffer;
 #else
@@ -220,7 +220,7 @@ bool xplConfigItem::FileSave( HANDLE& _hFile )const
 {
 	// Values must be concatenated into a single buffer
 
-	// First calculate the size of buffer 
+	// First calculate the size of buffer
 	// required to hold all the values
 	uint32 total = 0;
 	uint32 i;
@@ -230,7 +230,7 @@ bool xplConfigItem::FileSave( HANDLE& _hFile )const
 	}
 
 	// Array is terminated by an empty string
-	total += 1; 
+	total += 1;
 
 	// Now build the buffer
 	int8* pBuffer = new int8[total];

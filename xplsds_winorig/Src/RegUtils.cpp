@@ -46,30 +46,30 @@ using namespace xpl;
 ***************************************************************************/
 
 bool xpl::RegOpen
-( 
-	HKEY _root, 
-	string const& _path, 
-	HKEY* _pKey 
+(
+    HKEY _root,
+    string const& _path,
+    HKEY* _pKey
 )
 {
-	HKEY hKey;
-	if( ERROR_SUCCESS != RegOpenKeyEx( _root, TEXT(_path.c_str()), 0, KEY_READ, &hKey ) )
-	{
-		if( EventLog* pEventLog = EventLog::Get() )
-		{
-			char msg[MAX_PATH];
-			sprintf( msg, "Failed to open registry key: %s", _path.c_str() );
-			pEventLog->ReportError( msg );
-		}
-		return false;
-	}
+    HKEY hKey;
+    if ( ERROR_SUCCESS != RegOpenKeyEx ( _root, TEXT ( _path.c_str() ), 0, KEY_READ, &hKey ) )
+    {
+        if ( EventLog* pEventLog = EventLog::Get() )
+        {
+            char msg[MAX_PATH];
+            sprintf ( msg, "Failed to open registry key: %s", _path.c_str() );
+            pEventLog->ReportError ( msg );
+        }
+        return false;
+    }
 
-	if( _pKey )
-	{
-		*_pKey = hKey;
-	}
+    if ( _pKey )
+    {
+        *_pKey = hKey;
+    }
 
-	return true;
+    return true;
 }
 
 
@@ -80,12 +80,12 @@ bool xpl::RegOpen
 ***************************************************************************/
 
 bool xpl::RegClose
-( 
-	HKEY _key
+(
+    HKEY _key
 )
 {
-	RegCloseKey( _key );
-	return true;
+    RegCloseKey ( _key );
+    return true;
 }
 
 
@@ -96,35 +96,35 @@ bool xpl::RegClose
 ***************************************************************************/
 
 bool xpl::RegRead
-( 
-	HKEY _key,
-	string const& _name,
-	uint32* _val
+(
+    HKEY _key,
+    string const& _name,
+    uint32* _val
 )
 {
-	DWORD type;
-	DWORD size;
-	DWORD val;
+    DWORD type;
+    DWORD size;
+    DWORD val;
 
-	size = sizeof(DWORD);
-	if( ( ERROR_SUCCESS != RegQueryValueEx( _key, TEXT(_name.c_str()), NULL, &type, (BYTE*)&val, &size ) ) || ( REG_DWORD != type ) )
-	{
-		if( EventLog* pEventLog = EventLog::Get() )
-		{
-			char msg[MAX_PATH];
-			sprintf( msg, "Failed to read registry value: %s", _name.c_str() );
-			pEventLog->ReportError( msg );
-		}
-		return false;
-	}	
+    size = sizeof ( DWORD );
+    if ( ( ERROR_SUCCESS != RegQueryValueEx ( _key, TEXT ( _name.c_str() ), NULL, &type, ( BYTE* ) &val, &size ) ) || ( REG_DWORD != type ) )
+    {
+        if ( EventLog* pEventLog = EventLog::Get() )
+        {
+            char msg[MAX_PATH];
+            sprintf ( msg, "Failed to read registry value: %s", _name.c_str() );
+            pEventLog->ReportError ( msg );
+        }
+        return false;
+    }
 
-	if( _val )
-	{
-		*_val = val;
-		return true;
-	}
+    if ( _val )
+    {
+        *_val = val;
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 
@@ -135,24 +135,24 @@ bool xpl::RegRead
 ***************************************************************************/
 
 bool xpl::RegRead
-( 
-	HKEY _key,
-	string const& _name,
-	bool* _bState
+(
+    HKEY _key,
+    string const& _name,
+    bool* _bState
 )
 {
-	uint32 val;
-	if( RegRead( _key, _name, &val ) )
-	{
-		if( _bState )
-		{
-			*_bState = (val!=0);
-			return true;
-		}
-		assert(0);
-	}
+    uint32 val;
+    if ( RegRead ( _key, _name, &val ) )
+    {
+        if ( _bState )
+        {
+            *_bState = ( val!=0 );
+            return true;
+        }
+        assert ( 0 );
+    }
 
-	return false;
+    return false;
 }
 
 
@@ -163,43 +163,44 @@ bool xpl::RegRead
 ***************************************************************************/
 
 bool xpl::RegRead
-( 
-	HKEY _key,
-	string const& _name,
-	string* _str
+(
+    HKEY _key,
+    string const& _name,
+    string* _str
 )
 {
-	bool bRes = false;
-	char* pBuffer = NULL;
-	do
-	{
-		DWORD bufferSize;
-		if( ERROR_SUCCESS != RegQueryValueEx( _key, TEXT(_name.c_str()), NULL, NULL, NULL, &bufferSize ) )
-		{
-			break;
-		}
-	
-		char* pBuffer = new char[bufferSize];
-		DWORD type;
-		if( ERROR_SUCCESS != RegQueryValueEx( _key, TEXT(_name.c_str()), NULL, &type, (unsigned char*)pBuffer, &bufferSize ) )
-		{
-			break;
-		}
-	
-		if( REG_SZ != type )
-		{
-			break;	
-		}
+    bool bRes = false;
+    char* pBuffer = NULL;
+    do
+    {
+        DWORD bufferSize;
+        if ( ERROR_SUCCESS != RegQueryValueEx ( _key, TEXT ( _name.c_str() ), NULL, NULL, NULL, &bufferSize ) )
+        {
+            break;
+        }
 
-		if( _str )
-		{
-			*_str = pBuffer;
-			bRes = true;
-		}
+        char* pBuffer = new char[bufferSize];
+        DWORD type;
+        if ( ERROR_SUCCESS != RegQueryValueEx ( _key, TEXT ( _name.c_str() ), NULL, &type, ( unsigned char* ) pBuffer, &bufferSize ) )
+        {
+            break;
+        }
 
-	}while(0);
-	
-	delete [] pBuffer;
-	return bRes;
+        if ( REG_SZ != type )
+        {
+            break;
+        }
+
+        if ( _str )
+        {
+            *_str = pBuffer;
+            bRes = true;
+        }
+
+    }
+    while ( 0 );
+
+    delete [] pBuffer;
+    return bRes;
 }
 

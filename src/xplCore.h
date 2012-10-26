@@ -32,21 +32,21 @@
 ***************************************************************************/
 
 #ifndef XPLCORE_H
-#define XPLCORE_H                       
+#define XPLCORE_H
 
 #include <assert.h>
 #include <string>
 #ifdef _MSC_VER
-	#pragma once
-    
-	// Disable certain warnings (mostly caused by STL)
-	#pragma warning(disable:4786)   // Disable warning about symbols longer than 255 characters
-    #pragma warning(disable:4503)   // Disable warning 'decorated name length exceeded, name was truncated'
-    #pragma warning(disable:4018)   // Disable warning 'signed/unsigned mismatch'
-    #pragma warning(disable:4100)   // Disable warning 'unreferenced formal parameter'
-    #pragma warning(disable:4201)   // Disable warning 'nonstandard extension used : nameless struct/union'
+#pragma once
 
-    #pragma warning(disable:4996)   // Disable warning '... was declared deprecated' - required for .NET 2005
+// Disable certain warnings (mostly caused by STL)
+#pragma warning(disable:4786)   // Disable warning about symbols longer than 255 characters
+#pragma warning(disable:4503)   // Disable warning 'decorated name length exceeded, name was truncated'
+#pragma warning(disable:4018)   // Disable warning 'signed/unsigned mismatch'
+#pragma warning(disable:4100)   // Disable warning 'unreferenced formal parameter'
+#pragma warning(disable:4201)   // Disable warning 'nonstandard extension used : nameless struct/union'
+
+#pragma warning(disable:4996)   // Disable warning '... was declared deprecated' - required for .NET 2005
 
 
 #endif // MSC_VER
@@ -81,7 +81,7 @@ typedef double              float64;
 namespace std {}
 namespace xpl
 {
-    using namespace std;
+using namespace std;
 }
 using namespace std;
 
@@ -90,17 +90,31 @@ class XPLAddress
 public:
     bool bcast;
     string vendor, device, instance;
-    XPLAddress(){
+    XPLAddress()
+    {
         vendor="*";
         device="*";
         instance="*";
         bcast = false;
     }
-    string toString() const {
-        if (bcast) {
+    string toString() const
+    {
+        if ( bcast )
+        {
             return "*";
         }
-        return vendor + "-" + device + "." + instance; 
+        return vendor + "-" + device + "." + instance;
+    }
+    /**
+     * @brief Tests to see if the other address matches against our own (which may have *'s)
+     *
+     * @param other to test against
+     **/
+    bool match(XPLAddress other){
+        return (bcast  || (
+        (vendor=="*" || vendor.compare ( other.vendor ) == 0) 
+        && (device=="*" || device.compare ( other.device ) == 0)
+        && (instance=="*" || instance.compare ( other.instance ) == 0)));
     }
 };
 

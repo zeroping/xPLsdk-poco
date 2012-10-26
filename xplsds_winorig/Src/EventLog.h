@@ -54,87 +54,87 @@ namespace xpl
 /**
  * Helper class to simplify writing to the Windows Event Log
  */
-class EventLog 
+class EventLog
 {
 public:
-	/**
-	 * Create the EventLog singleton.
-	 * @param _appName the name of the executable (without the .exe).  If this is not right, logging will not work correctly.
-	 * @param _bRegisterApp whether the application should be added to the event log entries in the regsistry.  Defaults to true.
-	 * @see Get, Destroy
-	 */
-	static void Create( string const& _appName, bool _bRegisterApp = true )
-	{
-		assert( !s_pInstance );
-		if( !s_pInstance )
-		{
-			s_pInstance = new EventLog( _appName, _bRegisterApp );
-		}
-	}
+    /**
+     * Create the EventLog singleton.
+     * @param _appName the name of the executable (without the .exe).  If this is not right, logging will not work correctly.
+     * @param _bRegisterApp whether the application should be added to the event log entries in the regsistry.  Defaults to true.
+     * @see Get, Destroy
+     */
+    static void Create ( string const& _appName, bool _bRegisterApp = true )
+    {
+        assert ( !s_pInstance );
+        if ( !s_pInstance )
+        {
+            s_pInstance = new EventLog ( _appName, _bRegisterApp );
+        }
+    }
 
-	/**
-	 * Obtain a pointer to the EventLog singleton.  This method should not be called before Create.
-	 * @return returns a pointer to the EventLog singleton object.
-	 * @see Create, Destroy
-	 */
-	static EventLog* Get()
-	{
-		assert( s_pInstance );
-		return s_pInstance;
-	}
+    /**
+     * Obtain a pointer to the EventLog singleton.  This method should not be called before Create.
+     * @return returns a pointer to the EventLog singleton object.
+     * @see Create, Destroy
+     */
+    static EventLog* Get()
+    {
+        assert ( s_pInstance );
+        return s_pInstance;
+    }
 
-	/**
-	 * Destroys the EventLog singleton object.
-	 * @see Create, Get
-	 */
-	static void Destroy()
-	{
-		assert( s_pInstance );
-		delete s_pInstance;
-		s_pInstance = NULL;
-	}
+    /**
+     * Destroys the EventLog singleton object.
+     * @see Create, Get
+     */
+    static void Destroy()
+    {
+        assert ( s_pInstance );
+        delete s_pInstance;
+        s_pInstance = NULL;
+    }
 
-	/**
-	 * Add an information message to the event log.
-	 * @param _msg string containing the message text to be added to the log.
-	 * @return true if the message was successfully recorded in the log.
-	 * @see ReportWarning, ReportError, ReportFailure
-	 */
-    bool ReportInformation( LPCTSTR _msg );
+    /**
+     * Add an information message to the event log.
+     * @param _msg string containing the message text to be added to the log.
+     * @return true if the message was successfully recorded in the log.
+     * @see ReportWarning, ReportError, ReportFailure
+     */
+    bool ReportInformation ( LPCTSTR _msg );
 
-	/**
-	 * Add a warning message to the event log.
-	 * @param _msg string containing the message text to be added to the log.
-	 * @return true if the message was successfully recorded in the log.
-	 * @see ReportInformation, ReportError, ReportFailure
-	 */
-    bool ReportWarning( LPCTSTR _msg );
+    /**
+     * Add a warning message to the event log.
+     * @param _msg string containing the message text to be added to the log.
+     * @return true if the message was successfully recorded in the log.
+     * @see ReportInformation, ReportError, ReportFailure
+     */
+    bool ReportWarning ( LPCTSTR _msg );
 
-	/**
-	 * Add an error message to the event log.
-	 * @param _msg string containing the message text to be added to the log.
-	 * @return true if the message was successfully recorded in the log.
-	 * @see ReportInformation, ReportWarning, ReportFailure
-	 */
-	bool ReportError( LPCTSTR _msg );
+    /**
+     * Add an error message to the event log.
+     * @param _msg string containing the message text to be added to the log.
+     * @return true if the message was successfully recorded in the log.
+     * @see ReportInformation, ReportWarning, ReportFailure
+     */
+    bool ReportError ( LPCTSTR _msg );
 
-	/**
-	 * Add a failure message to the event log.
-	 * @param _msg string containing the message text to be added to the log.
-	 * @return true if the message was successfully recorded in the log.
-	 * @see ReportInformation, ReportWarning, ReportError
-	 */
-	bool ReportFailure( LPCTSTR _msg );
+    /**
+     * Add a failure message to the event log.
+     * @param _msg string containing the message text to be added to the log.
+     * @return true if the message was successfully recorded in the log.
+     * @see ReportInformation, ReportWarning, ReportError
+     */
+    bool ReportFailure ( LPCTSTR _msg );
 
 private:
-    EventLog( string const& _appName, bool _bRegisterApp );
-	
-	~EventLog();
+    EventLog ( string const& _appName, bool _bRegisterApp );
 
-	bool Report( WORD wtype, DWORD aId, WORD aNumStrings, LPCTSTR* apMessage );
+    ~EventLog();
 
-	HANDLE				m_hLog;
-	static EventLog*	s_pInstance;
+    bool Report ( WORD wtype, DWORD aId, WORD aNumStrings, LPCTSTR* apMessage );
+
+    HANDLE				m_hLog;
+    static EventLog*	s_pInstance;
 };
 
 

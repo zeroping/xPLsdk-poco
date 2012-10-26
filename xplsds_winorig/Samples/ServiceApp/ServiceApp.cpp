@@ -62,27 +62,27 @@ string const c_appDescription = "Sample xPL Service";
 ****																	****
 ***************************************************************************/
 
-int main( int argc, char* argv[] )
+int main ( int argc, char* argv[] )
 {
-	// Create the event log
-	EventLog::Create( c_appName );
+    // Create the event log
+    EventLog::Create ( c_appName );
 
-	// Create the application
-	ServiceApp* pApp = new ServiceApp();
+    // Create the application
+    ServiceApp* pApp = new ServiceApp();
 
-	// Wrap the application in a service
+    // Wrap the application in a service
     // Change "xPLApp" to the name you want to use for your service.
-	Service* pService = Service::Create( c_appName, c_appDescription, ServiceApp::MainProc, (void*)pApp );
+    Service* pService = Service::Create ( c_appName, c_appDescription, ServiceApp::MainProc, ( void* ) pApp );
 
-	// Install, Uninstall or Run the service as determined by the command line
-	int res = pService->ProcessCommandLine( argc, argv );
+    // Install, Uninstall or Run the service as determined by the command line
+    int res = pService->ProcessCommandLine ( argc, argv );
 
-	// Clean up
-	Service::Destroy();
-	delete pApp;
-	EventLog::Destroy();
+    // Clean up
+    Service::Destroy();
+    delete pApp;
+    EventLog::Destroy();
 
-	return( res );
+    return ( res );
 }
 
 
@@ -92,9 +92,9 @@ int main( int argc, char* argv[] )
 ****																	****
 ***************************************************************************/
 
-ServiceApp::ServiceApp():
-	m_pDevice( NULL ),
-	m_pComms( NULL )
+ServiceApp::ServiceApp() :
+    m_pDevice ( NULL ),
+    m_pComms ( NULL )
 {
     // Set default values for your application's variables here.
 }
@@ -120,47 +120,47 @@ ServiceApp::~ServiceApp()
 
 void ServiceApp::Run
 (
-	HANDLE _hActive,
-	HANDLE _hExit
+    HANDLE _hActive,
+    HANDLE _hExit
 )
 {
     // _hActive is signalled when the service is running (not paused)
     // _hExit is signalled when the service stops.
-    
+
 
     // ************************
     // Init
     // ************************
 
-	// Create the xPL communications object
-	m_pComms = xplUDP::Create( true );
-	if( NULL == m_pComms )
-	{
-		return;
-	}
+    // Create the xPL communications object
+    m_pComms = xplUDP::Create ( true );
+    if ( NULL == m_pComms )
+    {
+        return;
+    }
 
-	// Create the xPL Device
+    // Create the xPL Device
     // Change "vendor" to your own vendor ID.  Vendor IDs can be no more than 8 characters
     // in length.  Post a message to the xPL Yahoo Group (http://groups.yahoo.com/group/ukha_xpl)
     // to request a vendor ID.
     // Replace "device" with a suitable device name for your application - usually something
     // related to what is being xPL-enabled.  Device names can be no more than 8 characters.
-	m_pDevice = xplDevice::Create( "vendor", "device", c_configVersion, true, true, m_pComms );
-	if( NULL == m_pDevice )
-	{
-		return;
-	}
+    m_pDevice = xplDevice::Create ( "vendor", "device", c_configVersion, true, true, m_pComms );
+    if ( NULL == m_pDevice )
+    {
+        return;
+    }
 
-	// Create any additional config items
+    // Create any additional config items
     // As an example, the following code creates an item to hold the index
     // of a com port.  The value can be changed by the user in xPLHal.
-	xplConfigItem* pItem = new xplConfigItem( "comport", "reconf" );
-	if( NULL != pItem )
-	{
-        // Default the com port to COM1	
-        pItem->AddValue( "1" );
-		m_pDevice->AddConfigItem( pItem );
-	}
+    xplConfigItem* pItem = new xplConfigItem ( "comport", "reconf" );
+    if ( NULL != pItem )
+    {
+        // Default the com port to COM1
+        pItem->AddValue ( "1" );
+        m_pDevice->AddConfigItem ( pItem );
+    }
 
     // Get the message and config events
     // The xplMsgEvent is signalled when an xPL message is received by the xplDevice.
@@ -168,79 +168,79 @@ void ServiceApp::Run
     HANDLE xplMsgEvent = m_pDevice->GetMsgEvent();
     HANDLE configEvent = m_pDevice->GetConfigEvent();
 
-	// Init the xplDevice
-	// Note that all config items must have been set up before Init() is called.
-	m_pDevice->Init();
+    // Init the xplDevice
+    // Note that all config items must have been set up before Init() is called.
+    m_pDevice->Init();
 
 
     // ************************
-	// Main loop
+    // Main loop
     // ************************
-	
-    while( 1 )
-	{
-		// Wait for an event to occur.
+
+    while ( 1 )
+    {
+        // Wait for an event to occur.
         // If possible, design your application so that an event is signalled when
         // something needs to be taken care of.  That way, the application can
         // sit here not taking any CPU time, until there is work to do.
         // Add your own events to the handles array.  Don't forget to change the
         // number of events in the WaitForMultipleObjects call.
-		HANDLE handles[3];
-		handles[0] = _hExit;
+        HANDLE handles[3];
+        handles[0] = _hExit;
         handles[1] = xplMsgEvent;
         handles[2] = configEvent;
 
-        DWORD res = WaitForMultipleObjects( 3, handles, FALSE, INFINITE );
+        DWORD res = WaitForMultipleObjects ( 3, handles, FALSE, INFINITE );
 
-   		// First check that we're not actually meant to be paused
-		handles[1] = _hActive;
-		if( WAIT_OBJECT_0 == WaitForMultipleObjects( 2, handles, FALSE, INFINITE ) )
-		{
-			// Exit event was signalled
-			break;
-		}
+        // First check that we're not actually meant to be paused
+        handles[1] = _hActive;
+        if ( WAIT_OBJECT_0 == WaitForMultipleObjects ( 2, handles, FALSE, INFINITE ) )
+        {
+            // Exit event was signalled
+            break;
+        }
 
         // Deal with any received xPL messages
-        if( ( WAIT_OBJECT_0 + 1 ) == res )
+        if ( ( WAIT_OBJECT_0 + 1 ) == res )
         {
             HandleMessages();
         }
 
         // Is configuration required?
-        if( ( WAIT_OBJECT_0 + 2 ) == res )
+        if ( ( WAIT_OBJECT_0 + 2 ) == res )
         {
             // Reset the configEvent before doing the configuration.
             // This ensures that if a config update is received by the
             // xPLDevice thread while we're in Configure(), it will
             // not be missed.
-            ResetEvent( configEvent );
+            ResetEvent ( configEvent );
             Configure();
         }
 
         // Deal with any ServiceApp specific stuff here
-        // If we were waiting on an event, check it in the same way 
+        // If we were waiting on an event, check it in the same way
         // that we did for the xplMsgEvent and configEvent above.
         //
         // if( ( WAIT_OBJECT_0 + 3 ) == res )
         // {
         // }
         //
-	}
+    }
 
     // ************************
-	// Clean up and exit
+    // Clean up and exit
     // ************************
 
-	// Destroy the xPL Device
-	// This also deletes the hub and any config items we may have added
-	xplDevice::Destroy( m_pDevice );
-	m_pDevice = NULL;
+    // Destroy the xPL Device
+    // This also deletes the hub and any config items we may have added
+    xplDevice::Destroy ( m_pDevice );
+    m_pDevice = NULL;
 
-	// Destroy the comms object
-	xplUDP::Destroy( m_pComms );
-	m_pComms = NULL;
+    // Destroy the comms object
+    xplUDP::Destroy ( m_pComms );
+    m_pComms = NULL;
 
-	return;
+    return;
 }
 
 
@@ -255,7 +255,7 @@ void ServiceApp::HandleMessages()
     xplMsg* pMsg = NULL;
 
     // Get each queued message in turn
-    while( pMsg = m_pDevice->GetMsg() )
+    while ( pMsg = m_pDevice->GetMsg() )
     {
         // Process the message here.
         // ...
@@ -278,13 +278,13 @@ void ServiceApp::Configure()
     // take the appropriate action.
 
     // As an example, the Com Port index.
-    //  
+    //
     //  xplConfigItem const* pItem = m_pDevice->GetConfigItem( "comport" );
-	//  string value = pItem->GetValue();
+    //  string value = pItem->GetValue();
     //  if( !value.empty() )
-	//  {
-	//      int comPort = atol( value.c_str() );
-    //      
+    //  {
+    //      int comPort = atol( value.c_str() );
+    //
     //      Deal with any change to the Com port number
     //      ...
     //  }
@@ -299,16 +299,16 @@ void ServiceApp::Configure()
 ***************************************************************************/
 
 void ServiceApp::MainProc
-( 
-	HANDLE _hActive, 
-	HANDLE _hExit, 
-	void* pContext 
+(
+    HANDLE _hActive,
+    HANDLE _hExit,
+    void* pContext
 )
 {
     // Function called by the service when it starts
     // _hActive is signalled when the service is running (not paused)
     // _hExit is signalled when the service stops.
-	ServiceApp* pApp = (ServiceApp*)pContext;
-	pApp->Run( _hActive, _hExit );
+    ServiceApp* pApp = ( ServiceApp* ) pContext;
+    pApp->Run ( _hActive, _hExit );
 }
 

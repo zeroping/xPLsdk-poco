@@ -51,59 +51,59 @@ class xplMsg;
  * class being granted access.
  * <p>
  * Filters are one of the config items defined by the xplDevice, and are set
- * up by the user in xPLHal.  They take the form of a string defined as 
+ * up by the user in xPLHal.  They take the form of a string defined as
  * follows:
  * <p>
  *     [msgtype].[vendor].[device].[instance].[class].[type]
  * <p>
  * All elements must be present, but may be wildcarded with a '*'.  If any
- * filters have been defined, only messages that pass at least one of them 
+ * filters have been defined, only messages that pass at least one of them
  * will be acted upon.
  */
 class xplFilter
 {
 private:
-	friend class xplDevice;
+    friend class xplDevice;
 
-	/**
-	 * Constructor.
-	 * @param _filterStr A string in the form
-	 * [msgtype].[vendor].[device].[instance].[class].[type]
-	 * All elements must be present, but may be wildcarded with a '*'.
-	 */
-	xplFilter( string const& _filterStr );
-	
-	/** 
-	 * Destructor.
-	 */
-	~xplFilter(){}
+    /**
+     * Constructor.
+     * @param _filterStr A string in the form
+     * [msgtype].[vendor].[device].[instance].[class].[type]
+     * All elements must be present, but may be wildcarded with a '*'.
+     */
+    xplFilter ( string const& _filterStr );
 
-	/**
-	 * Filters a message.  Compares the message elements to the filters.
-	 * If any filter matches the message, it is allowed to pass.
-	 * @param _msg the message to be tested.
-	 * @return True if the message passes the filters, false if it
-	 * should be ignored.
-	 */
-	bool Allow( xplMsg const& _msg )const;
+    /**
+     * Destructor.
+     */
+    ~xplFilter() {}
 
-	enum
-	{
-		FilterElement_MsgType	= 0x00000001,
-		FilterElement_Vendor	= 0x00000002,
-		FilterElement_Device	= 0x00000004,
-		FilterElement_Instance	= 0x00000008,
-		FilterElement_Class		= 0x00000010,
-		FilterElement_Type		= 0x00000020
-	};
+    /**
+     * Filters a message.  Compares the message elements to the filters.
+     * If any filter matches the message, it is allowed to pass.
+     * @param _msg the message to be tested.
+     * @return True if the message passes the filters, false if it
+     * should be ignored.
+     */
+    bool Allow ( xplMsg const& _msg ) const;
 
-	string	m_msgType;
-	string	m_vendor;
-	string	m_device;
-	string	m_instance;
-	string	m_class;
-	string	m_type;
-	uint32	m_filterElementMask;	//Bit cleared if element is wildcard
+    enum
+    {
+        FilterElement_MsgType	= 0x00000001,
+        FilterElement_Vendor	= 0x00000002,
+        FilterElement_Device	= 0x00000004,
+        FilterElement_Instance	= 0x00000008,
+        FilterElement_Class		= 0x00000010,
+        FilterElement_Type		= 0x00000020
+    };
+
+    string	m_msgType;
+    string	m_vendor;
+    string	m_device;
+    string	m_instance;
+    string	m_class;
+    string	m_type;
+    uint32	m_filterElementMask;	//Bit cleared if element is wildcard
 
 }; // class xplFilter
 

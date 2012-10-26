@@ -44,12 +44,12 @@ using namespace xpl;
 // previous versions, and instead enters config mode.
 string const c_version = "1.1.0";
 
-// The app name must be exactly the same as the compiled executable 
+// The app name must be exactly the same as the compiled executable
 // (but without the .exe), or the event logging will not work.
 string const c_appName = "ConsoleApp";
 
-void HandleMessages( xplDevice* _pDevice );
-void Configure( xplDevice* _pDevice );
+void HandleMessages ( xplDevice* _pDevice );
+void Configure ( xplDevice* _pDevice );
 
 
 /***************************************************************************
@@ -58,44 +58,44 @@ void Configure( xplDevice* _pDevice );
 ****																	****
 ***************************************************************************/
 
-int main( int argc, char* argv[] )
+int main ( int argc, char* argv[] )
 {
     // ************************
     // Init
     // ************************
 
-	// Create the EventLog
-	xpl::EventLog::Create( c_appName );
+    // Create the EventLog
+    xpl::EventLog::Create ( c_appName );
 
-	// Create the xPL communications object
-	xplComms* pComms = xplUDP::Create( true );
-	if( NULL == pComms )
-	{
-		goto exit;
-	}
+    // Create the xPL communications object
+    xplComms* pComms = xplUDP::Create ( true );
+    if ( NULL == pComms )
+    {
+        goto exit;
+    }
 
-	// Create the xPL Device
+    // Create the xPL Device
     // Change "vendor" to your own vendor ID.  Vendor IDs can be no more than 8 characters
     // in length.  Post a message to the xPL Yahoo Group (http://groups.yahoo.com/group/ukha_xpl)
     // to request a vendor ID.
     // Replace "device" with a suitable device name for your application - usually something
     // related to what is being xPL-enabled.  Device names can be no more than 8 characters.
-	xplDevice* pDevice = xplDevice::Create( "vendor", "device", c_version, true, true, pComms );
-	if( NULL == pDevice )
-	{
-		goto exit; 
-	}
+    xplDevice* pDevice = xplDevice::Create ( "vendor", "device", c_version, true, true, pComms );
+    if ( NULL == pDevice )
+    {
+        goto exit;
+    }
 
-	// Create any additional config items
+    // Create any additional config items
     // As an example, the following code creates an item to hold the index
     // of a com port.  The value can be changed by the user in xPLHal.
-	xplConfigItem* pItem = new xplConfigItem( "comport", "reconf" );
-	if( NULL != pItem )
-	{
-        // Default the com port to COM1	
-        pItem->AddValue( "1" );
-		pDevice->AddConfigItem( pItem );
-	}
+    xplConfigItem* pItem = new xplConfigItem ( "comport", "reconf" );
+    if ( NULL != pItem )
+    {
+        // Default the com port to COM1
+        pItem->AddValue ( "1" );
+        pDevice->AddConfigItem ( pItem );
+    }
 
     // Get the message and config events
     // The xplMsgEvent is signalled when an xPL message is received by the xplDevice.
@@ -103,83 +103,83 @@ int main( int argc, char* argv[] )
     HANDLE xplMsgEvent = pDevice->GetMsgEvent();
     HANDLE configEvent = pDevice->GetConfigEvent();
 
-	// Init the xplDevice
-	// Note that all config items must have been set up before Init() is called.
-	pDevice->Init();
+    // Init the xplDevice
+    // Note that all config items must have been set up before Init() is called.
+    pDevice->Init();
 
 
     // ************************
-	// Main loop
+    // Main loop
     // ************************
-	
-    while( 1 )
-	{
-		// Wait for an event to occur.
+
+    while ( 1 )
+    {
+        // Wait for an event to occur.
         // If possible, design your application so that an event is signalled when
         // something needs to be taken care of.  That way, the application can
         // sit here not taking any CPU time, until there is work to do.
         // Add your own events to the handles array.  Don't forget to change the
         // number of events in the WaitForMultipleObjects call.
-		HANDLE handles[2];
+        HANDLE handles[2];
         handles[0] = xplMsgEvent;
         handles[1] = configEvent;
 
-		DWORD res = WaitForMultipleObjects( 2, handles, FALSE, INFINITE );
+        DWORD res = WaitForMultipleObjects ( 2, handles, FALSE, INFINITE );
 
         // Deal with any received xPL messages
-        if( WAIT_OBJECT_0 == res )
+        if ( WAIT_OBJECT_0 == res )
         {
-            HandleMessages( pDevice );
+            HandleMessages ( pDevice );
         }
 
         // Is configuration required?
-        if( ( WAIT_OBJECT_0 + 1 ) == res )
+        if ( ( WAIT_OBJECT_0 + 1 ) == res )
         {
             // Reset the configEvent before doing the configuration.
             // This ensures that if a config update is received by the
             // xPLDevice thread while we're in Configure(), it will
             // not be missed.
-            ResetEvent( configEvent );
-            Configure( pDevice );
+            ResetEvent ( configEvent );
+            Configure ( pDevice );
         }
 
         // Deal with any App specific stuff here
-        // If we were waiting on another event, check it in the same way 
+        // If we were waiting on another event, check it in the same way
         // that we did for the xplMsgEvent and configEvent above.
         //
         // if( ( WAIT_OBJECT_0 + 2 ) == res )
         // {
         // }
         //
-	}
+    }
 
 exit:
     // ************************
-	// Clean up and exit
+    // Clean up and exit
     // ************************
 
-	// Destroy the xPL Device
-	// This also deletes any config items we may have added
-	if( pDevice )
-	{
-		xplDevice::Destroy( pDevice );
-		pDevice = NULL;
-	}
+    // Destroy the xPL Device
+    // This also deletes any config items we may have added
+    if ( pDevice )
+    {
+        xplDevice::Destroy ( pDevice );
+        pDevice = NULL;
+    }
 
-	// Destroy the comms object
-	if( pComms )
-	{
-		xplUDP::Destroy( pComms );
-		pComms = NULL;
-	}
+    // Destroy the comms object
+    if ( pComms )
+    {
+        xplUDP::Destroy ( pComms );
+        pComms = NULL;
+    }
 
-	// Destroy the event log
-	if( EventLog::Get() )
-	{
-		EventLog::Destroy();
-	}
+    // Destroy the event log
+    if ( EventLog::Get() )
+    {
+        EventLog::Destroy();
+    }
 
-	return 0;
+    return 0;
 }
 
 
@@ -189,12 +189,12 @@ exit:
 ****																	****
 ***************************************************************************/
 
-void HandleMessages( xplDevice* _pDevice )
+void HandleMessages ( xplDevice* _pDevice )
 {
     xplMsg* pMsg = NULL;
 
     // Get each queued message in turn
-    while( pMsg = _pDevice->GetMsg() )
+    while ( pMsg = _pDevice->GetMsg() )
     {
         // Process the message here.
         // ...
@@ -211,19 +211,19 @@ void HandleMessages( xplDevice* _pDevice )
 ****																	****
 ***************************************************************************/
 
-void Configure( xplDevice* _pDevice )
+void Configure ( xplDevice* _pDevice )
 {
     // Examine each of our config items in turn, and if they have changed,
     // take the appropriate action.
 
     // As an example, the Com Port index.
-    //  
+    //
     //  xplConfigItem const* pItem = _pDevice->GetConfigItem( "comport" );
-	//  string value = pItem->GetValue();
+    //  string value = pItem->GetValue();
     //  if( !value.empty() )
-	//  {
-	//      int comPort = atol( value.c_str() );
-    //      
+    //  {
+    //      int comPort = atol( value.c_str() );
+    //
     //      Deal with any change to the Com port number
     //      ...
     //  }

@@ -54,7 +54,7 @@ namespace xpl
 /**
  * Helper class to simplify writing to the Windows Event Log
  */
-class EventLog 
+class EventLog
 {
 public:
 // 	/**
@@ -71,7 +71,7 @@ public:
 // 			s_pInstance = new EventLog( _appName, _bRegisterApp );
 // 		}
 // 	}
-// 
+//
 // 	/**
 // 	 * Obtain a pointer to the EventLog singleton.  This method should not be called before Create.
 // 	 * @return returns a pointer to the EventLog singleton object.
@@ -82,7 +82,7 @@ public:
 // 		assert( s_pInstance );
 // 		return s_pInstance;
 // 	}
-// 
+//
 // 	/**
 // 	 * Destroys the EventLog singleton object.
 // 	 * @see Create, Get
@@ -94,47 +94,47 @@ public:
 // 		s_pInstance = NULL;
 // 	}
 
-	/**
-	 * Add an information message to the event log.
-	 * @param _msg string containing the message text to be added to the log.
-	 * @return true if the message was successfully recorded in the log.
-	 * @see ReportWarning, ReportError, ReportFailure
-	 */
-    void ReportInformation( std::string _msg );
+    /**
+     * Add an information message to the event log.
+     * @param _msg string containing the message text to be added to the log.
+     * @return true if the message was successfully recorded in the log.
+     * @see ReportWarning, ReportError, ReportFailure
+     */
+    void ReportInformation ( std::string _msg );
 
-	/**
-	 * Add a warning message to the event log.
-	 * @param _msg string containing the message text to be added to the log.
-	 * @return true if the message was successfully recorded in the log.
-	 * @see ReportInformation, ReportError, ReportFailure
-	 */
-  bool ReportWarning( string _msg );
+    /**
+     * Add a warning message to the event log.
+     * @param _msg string containing the message text to be added to the log.
+     * @return true if the message was successfully recorded in the log.
+     * @see ReportInformation, ReportError, ReportFailure
+     */
+    bool ReportWarning ( string _msg );
 
-	/**
-	 * Add an error message to the event log.
-	 * @param _msg string containing the message text to be added to the log.
-	 * @return true if the message was successfully recorded in the log.
-	 * @see ReportInformation, ReportWarning, ReportFailure
-	 */
-    void ReportError( std::string _msg );
+    /**
+     * Add an error message to the event log.
+     * @param _msg string containing the message text to be added to the log.
+     * @return true if the message was successfully recorded in the log.
+     * @see ReportInformation, ReportWarning, ReportFailure
+     */
+    void ReportError ( std::string _msg );
 
-	/**
-	 * Add a failure message to the event log.
-	 * @param _msg string containing the message text to be added to the log.
-	 * @return true if the message was successfully recorded in the log.
-	 * @see ReportInformation, ReportWarning, ReportError
-	 */
-	void ReportFailure( std::string _msg );
+    /**
+     * Add a failure message to the event log.
+     * @param _msg string containing the message text to be added to the log.
+     * @return true if the message was successfully recorded in the log.
+     * @see ReportInformation, ReportWarning, ReportError
+     */
+    void ReportFailure ( std::string _msg );
 
 private:
-    EventLog( string const& _appName, bool _bRegisterApp );
-	
-	~EventLog();
+    EventLog ( string const& _appName, bool _bRegisterApp );
+
+    ~EventLog();
 
 
 
-	HANDLE				m_hLog;
-	static EventLog*	s_pInstance;
+    HANDLE				m_hLog;
+    static EventLog*	s_pInstance;
 };
 
 

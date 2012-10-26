@@ -40,22 +40,22 @@ using namespace xpl;
 class ServiceApp
 {
 public:
-	ServiceApp();
-	virtual ~ServiceApp();
+    ServiceApp();
+    virtual ~ServiceApp();
 
-	static void MainProc( HANDLE _hActive, HANDLE _hExit, void* pContext );
+    static void MainProc ( HANDLE _hActive, HANDLE _hExit, void* pContext );
 
 private:
-	void Run( HANDLE _hActive, HANDLE _hExit );
+    void Run ( HANDLE _hActive, HANDLE _hExit );
 
-	// Try to handle any received messages.
-	void HandleMessages( void );
+    // Try to handle any received messages.
+    void HandleMessages ( void );
 
-	// Set the device parameters according to the contents of the config items
-	void Configure();
+    // Set the device parameters according to the contents of the config items
+    void Configure();
 
-	xplDevice*			m_pDevice;
-	xplComms*			m_pComms;
+    xplDevice*			m_pDevice;
+    xplComms*			m_pComms;
 };
 
 #endif //_SERVICEAPP_H

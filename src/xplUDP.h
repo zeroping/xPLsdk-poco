@@ -66,10 +66,10 @@ namespace xpl
 /**
  * xPL communications over a LAN or the Internet.
  * This class enables xPL messages to be sent and recieved over a LAN
- * or Internet connection.  
+ * or Internet connection.
  * <p>
  * The only method of any real interest to the xPL developer will be
- * xplUDP::Create.  The Destroy method is implemented in the base class, 
+ * xplUDP::Create.  The Destroy method is implemented in the base class,
  * xplComms.  All the other public methods exist to enable other xPL
  * classes to carry out their work, and should not need to be called
  * directly by the application.
@@ -95,93 +95,102 @@ public:
      * @see xplComms::Destroy
      */
     virtual ~xplUDP();
-    
-    
-	/**
-	 * Checks an IP address to see if it is local.
-	 * @param _ip 32bit IP address to check.
-	 * @return true if the address is a local one.
-	 */
-	bool IsLocalIP( Poco::Net::IPAddress _ip )const;
 
-	/**
-	 * Sets the port used for sending messages.
-	 * This method is provided only so a hub can forward messages to 
-	 * clients (who each specify a unique port).  There should be no
-	 * reason for it to be called from anywhere else.
-	 * @param _port index of port to use.
-	 */
-	void SetTxPort( uint16 _port ){ m_txPort = _port; }
 
-	/**
-	 * Sets the ip address used as the message destination.
-	 * This method is provided only so a hub can forward messages to 
-	 * clients (who each specify a unique addr).  There should be no
-	 * reason for it to be called from anywhere else.
-	 * @param _addr 32bit IP address to use.
-	 */
-	void SetTxAddr( uint32 _addr ){ m_txAddr = _addr; }
+    /**
+     * Checks an IP address to see if it is local.
+     * @param _ip 32bit IP address to check.
+     * @return true if the address is a local one.
+     */
+    bool IsLocalIP ( Poco::Net::IPAddress _ip ) const;
 
-	/**
-	 * Gets the local IP address that is used in xPL heartbeat messages.
-	 * @return the heartbeat IP address.
-	 */
-	string GetHeartbeatIP()const{ return m_interface.address().toString(); }
+    /**
+     * Sets the port used for sending messages.
+     * This method is provided only so a hub can forward messages to
+     * clients (who each specify a unique port).  There should be no
+     * reason for it to be called from anywhere else.
+     * @param _port index of port to use.
+     */
+    void SetTxPort ( uint16 _port )
+    {
+        m_txPort = _port;
+    }
 
-	// Overrides of xplComms' methods.  See xplComms.h for documentation.
-	virtual bool TxMsg( xplMsg& _pMsg );
-	virtual xplMsg* RxMsg( Poco::Event* exitevts, uint32 _timeout = 0 );
-	virtual void SendHeartbeat( string const& _source, uint32 const _interval, string const& _version );
+    /**
+     * Sets the ip address used as the message destination.
+     * This method is provided only so a hub can forward messages to
+     * clients (who each specify a unique addr).  There should be no
+     * reason for it to be called from anywhere else.
+     * @param _addr 32bit IP address to use.
+     */
+    void SetTxAddr ( uint32 _addr )
+    {
+        m_txAddr = _addr;
+    }
 
-  /**
-   * Constructor.  Only to be called via the static Create method
-   * @see xplUDP::Create
-   */
-  xplUDP( bool const _bViaHub = false);
-  
-  
+    /**
+     * Gets the local IP address that is used in xPL heartbeat messages.
+     * @return the heartbeat IP address.
+     */
+    string GetHeartbeatIP() const
+    {
+        return m_interface.address().toString();
+    }
+
+    // Overrides of xplComms' methods.  See xplComms.h for documentation.
+    virtual bool TxMsg ( xplMsg& _pMsg );
+    virtual xplMsg* RxMsg ( Poco::Event* exitevts, uint32 _timeout = 0 );
+    virtual void SendHeartbeat ( string const& _source, uint32 const _interval, string const& _version );
+
+    /**
+     * Constructor.  Only to be called via the static Create method
+     * @see xplUDP::Create
+     */
+    xplUDP ( bool const _bViaHub = false );
+
+
 protected:
 
 
-	virtual void SendConfigHeartbeat( string const& _source, uint32 const _interval, string const& _version );
-	virtual bool Connect();
-	virtual void Disconnect();
+    virtual void SendConfigHeartbeat ( string const& _source, uint32 const _interval, string const& _version );
+    virtual bool Connect();
+    virtual void Disconnect();
 
 private:
-	/**
-	 * Creates a list of all the local IP addresses.
-	 */
-	bool GetLocalIPs();
-  
-  /**
-   * target for the the listenAdapter thread to sit and listen for packets.
-   */
-  void ListenForPackets();
+    /**
+     * Creates a list of all the local IP addresses.
+     */
+    bool GetLocalIPs();
 
-	uint16						m_rxPort;				// Port on which we are listening for messages
-	uint16						m_txPort;				// Port on which we are sending messages
-	Poco::Net::NetworkInterface						m_interface;					// Local IP address to use in xPL heartbeats
-	bool						m_bViaHub;				// If false, bind directly to port 3865
-	
-	//SOCKET						m_sock;					// Socket used to send and receive xpl Messages
-	DatagramSocket m_sock;
-  RunnableAdapter<xplUDP>* listenAdapt;
-  Thread  listenThread;  
-  queue<xplMsg*> incommingQueue;
-  Mutex incommingQueueLock;
-	//WSAEVENT					m_rxEvent;				// Event used to wait for received data
-  Poco::Event   m_rxEvent;
-  
+    /**
+     * target for the the listenAdapter thread to sit and listen for packets.
+     */
+    void ListenForPackets();
 
-	uint32						m_txAddr;				// IP address to which we send our messages.  Defaults to the broadcast address.
-	uint32						m_listenOnAddress;		// IP address on which we listen for incoming messages
+    uint16						m_rxPort;				// Port on which we are listening for messages
+    uint16						m_txPort;				// Port on which we are sending messages
+    Poco::Net::NetworkInterface						m_interface;					// Local IP address to use in xPL heartbeats
+    bool						m_bViaHub;				// If false, bind directly to port 3865
 
-	bool						m_bListenToFilter;		// True to enable filtering of IP addresses from which we can receive messages.
-	vector<Poco::Net::IPAddress>				m_listenToAddresses;	// List of IP addresses that we accept messages from when m_bListenToFilter is true.
-	vector<Poco::Net::IPAddress>				m_localIPs;				// List of all local IP addresses for this machine
+    //SOCKET						m_sock;					// Socket used to send and receive xpl Messages
+    DatagramSocket m_sock;
+    RunnableAdapter<xplUDP>* listenAdapt;
+    Thread  listenThread;
+    queue<xplMsg*> incommingQueue;
+    Mutex incommingQueueLock;
+    //WSAEVENT					m_rxEvent;				// Event used to wait for received data
+    Poco::Event   m_rxEvent;
 
-	static uint16 const			c_xplHubPort;			// Standard port assigned to xPL traffic
-	Logger& commsLog;
+
+    uint32						m_txAddr;				// IP address to which we send our messages.  Defaults to the broadcast address.
+    uint32						m_listenOnAddress;		// IP address on which we listen for incoming messages
+
+    bool						m_bListenToFilter;		// True to enable filtering of IP addresses from which we can receive messages.
+    vector<Poco::Net::IPAddress>				m_listenToAddresses;	// List of IP addresses that we accept messages from when m_bListenToFilter is true.
+    vector<Poco::Net::IPAddress>				m_localIPs;				// List of all local IP addresses for this machine
+
+    static uint16 const			c_xplHubPort;			// Standard port assigned to xPL traffic
+    Logger& commsLog;
 };
 
 }	// namespace xpl

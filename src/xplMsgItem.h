@@ -52,77 +52,86 @@ namespace xpl
 class xplMsgItem
 {
 public:
-	/**
-	 * Constructor.
-	 * @param _name name of the name=value pairs that will be stored
-	 * in this item.
-	 */
-	xplMsgItem( string const& _name );
-	
-	/**
-	 * Destructor.
-	 */
-	~xplMsgItem(){}
+    /**
+     * Constructor.
+     * @param _name name of the name=value pairs that will be stored
+     * in this item.
+     */
+    xplMsgItem ( string const& _name );
 
-	/** 
-	 * Gets the name of this item.
-	 * @return The item name
-	 * @see AddValue, GetValue, GetNumValues
-	 */
-	string const& GetName()const{ return m_name; }
+    /**
+     * Destructor.
+     */
+    ~xplMsgItem() {}
 
-	/**
-	 * Gets the number of values stored in this item
-	 * @return The number of values stored in this item.
-	 * @see GetValue
-	 */
-	uint32 const GetNumValues()const{ return( (uint32)m_values.size() ); }
+    /**
+     * Gets the name of this item.
+     * @return The item name
+     * @see AddValue, GetValue, GetNumValues
+     */
+    string const& GetName() const
+    {
+        return m_name;
+    }
 
-	/**
-	 * Gets specific value.
-	 * Values are stored in the order that they are added.
-	 * Because duplicate name=value pairs are allowed, no
-	 * 'find' methods are provided, so it is left up to the
-	 * application to keep track of value indices.
-	 * @param _index The index of the value to retrieve.  Defaults
-	 * to zero.
-	 * @return A string containing the value, or an empty string
-	 * if the index was out of range.
-	 * @see GetNumValues, AddValue, GetName
-	 */
-	string const GetValue( const uint32 _index = 0 )const;
+    /**
+     * Gets the number of values stored in this item
+     * @return The number of values stored in this item.
+     * @see GetValue
+     */
+    uint32 const GetNumValues() const
+    {
+        return ( ( uint32 ) m_values.size() );
+    }
 
-	/**
-	 * Adds a value to this item.
-	 * @param _value the value to add to this item.
-	 * @param _delimiter Character that marks a point where the value string may
-	 * be broken to be split across multiple name=value lines.  This will only be
-	 * necessary if the length of the value exceeds the maximum 128 characters.
-	 * @return Returns true unless the value cannot be broken into strings of
-	 * less than 128 characters.
-	 */
-	virtual bool AddValue( string const& _value, char const _delimiter = ',' );
+    /**
+     * Gets specific value.
+     * Values are stored in the order that they are added.
+     * Because duplicate name=value pairs are allowed, no
+     * 'find' methods are provided, so it is left up to the
+     * application to keep track of value indices.
+     * @param _index The index of the value to retrieve.  Defaults
+     * to zero.
+     * @return A string containing the value, or an empty string
+     * if the index was out of range.
+     * @see GetNumValues, AddValue, GetName
+     */
+    string const GetValue ( const uint32 _index = 0 ) const;
 
-	/**
-	 * Changes a specific value.  Replaces an existing indexed value
-	 * string with another string.
-	 * @param _value the new value to replace the old one.
-	 * @param _index index of the value to be replaced.  Defaults
-	 * to zero.
-	 * @return True if the value is successfully changed, false if
-	 * _index was out of range.
-	 * @see AddValue, GetValue, GetNumValues
-	 */
-	bool SetValue( string const& _value, const uint32 _index = 0 );
+    /**
+     * Adds a value to this item.
+     * @param _value the value to add to this item.
+     * @param _delimiter Character that marks a point where the value string may
+     * be broken to be split across multiple name=value lines.  This will only be
+     * necessary if the length of the value exceeds the maximum 128 characters.
+     * @return Returns true unless the value cannot be broken into strings of
+     * less than 128 characters.
+     */
+    virtual bool AddValue ( string const& _value, char const _delimiter = ',' );
 
-	/**
-	 * Removes all the values stored in this item
-	 */
-	void ClearValues(){ m_values.clear(); }
+    /**
+     * Changes a specific value.  Replaces an existing indexed value
+     * string with another string.
+     * @param _value the new value to replace the old one.
+     * @param _index index of the value to be replaced.  Defaults
+     * to zero.
+     * @return True if the value is successfully changed, false if
+     * _index was out of range.
+     * @see AddValue, GetValue, GetNumValues
+     */
+    bool SetValue ( string const& _value, const uint32 _index = 0 );
+
+    /**
+     * Removes all the values stored in this item
+     */
+    void ClearValues()
+    {
+        m_values.clear();
+    }
 
 private:
-	string				m_name;
-	vector<string>		m_values;
+    string				m_name;
+    vector<string>		m_values;
 
 }; // class xplMsgItem
 

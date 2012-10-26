@@ -33,16 +33,16 @@ IDI_SMALL               ICON         "small.ico"
 // Menu
 //
 
-IDC_WINDOWAPP MENU 
+IDC_WINDOWAPP MENU
 BEGIN
-    POPUP "&File"
-    BEGIN
-        MENUITEM "E&xit",                IDM_EXIT
-    END
-    POPUP "&Help"
-    BEGIN
-        MENUITEM "&About ...",           IDM_ABOUT
-    END
+POPUP "&File"
+BEGIN
+MENUITEM "E&xit",                IDM_EXIT
+END
+POPUP "&Help"
+BEGIN
+MENUITEM "&About ...",           IDM_ABOUT
+END
 END
 
 
@@ -53,8 +53,8 @@ END
 
 IDC_WINDOWAPP ACCELERATORS
 BEGIN
-    "?",            IDM_ABOUT,              ASCII,  ALT
-    "/",            IDM_ABOUT,              ASCII,  ALT
+"?",            IDM_ABOUT,              ASCII,  ALT
+"/",            IDM_ABOUT,              ASCII,  ALT
 END
 
 
@@ -68,10 +68,10 @@ STYLE DS_MODALFRAME | WS_CAPTION | WS_SYSMENU
 CAPTION "About"
 FONT 8, "System"
 BEGIN
-    ICON            IDI_WINDOWAPP,IDC_MYICON,14,9,16,16
-    LTEXT           "WindowApp Version 1.0",IDC_STATIC,49,10,119,8,SS_NOPREFIX
-    LTEXT           "Copyright (C) 2005",IDC_STATIC,49,20,119,8
-    DEFPUSHBUTTON   "OK",IDOK,195,6,30,11,WS_GROUP
+ICON            IDI_WINDOWAPP,IDC_MYICON,14,9,16,16
+LTEXT           "WindowApp Version 1.0",IDC_STATIC,49,10,119,8,SS_NOPREFIX
+LTEXT           "Copyright (C) 2005",IDC_STATIC,49,20,119,8
+DEFPUSHBUTTON   "OK",IDOK,195,6,30,11,WS_GROUP
 END
 
 
@@ -80,23 +80,23 @@ END
 //
 // TEXTINCLUDE
 //
-1 TEXTINCLUDE  
+1 TEXTINCLUDE
 BEGIN
-    "resource.h\0"
+"resource.h\0"
 END
 
-2 TEXTINCLUDE  
+2 TEXTINCLUDE
 BEGIN
-    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
-    "#include ""windows.h""\r\n"
-    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
-    "\0"
+"#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+"#include ""windows.h""\r\n"
+"#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
+"\0"
 END
 
-3 TEXTINCLUDE  
+3 TEXTINCLUDE
 BEGIN
-    "\r\n"
-    "\0"
+"\r\n"
+"\0"
 END
 
 #endif    // APSTUDIO_INVOKED
@@ -106,10 +106,10 @@ END
 // String Table
 //
 
-STRINGTABLE  
+STRINGTABLE
 BEGIN
-   IDC_WINDOWAPP   "WINDOWAPP"
-   IDS_APP_TITLE       "WindowApp"
+IDC_WINDOWAPP   "WINDOWAPP"
+IDS_APP_TITLE       "WindowApp"
 END
 
 #endif

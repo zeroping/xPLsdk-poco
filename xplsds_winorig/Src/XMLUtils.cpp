@@ -44,37 +44,38 @@ using namespace XMLUtils;
 
 string XMLUtils::GetElementValue
 (
-	IXMLDOMNode* _pRoot,
-	CComBSTR _path
+    IXMLDOMNode* _pRoot,
+    CComBSTR _path
 )
 {
-	USES_CONVERSION;
-	IXMLDOMNode* pElement = NULL;
+    USES_CONVERSION;
+    IXMLDOMNode* pElement = NULL;
 
-	do
-	{
-		if( S_OK != _pRoot->selectSingleNode( _path, &pElement ) )
-		{
-			break;
-		}
-      
-		CComBSTR text;
-		if( S_OK != pElement->get_text( &text ) )
-		{
-			break;
-		}
+    do
+    {
+        if ( S_OK != _pRoot->selectSingleNode ( _path, &pElement ) )
+        {
+            break;
+        }
 
-		string value = W2A( text );
-		pElement->Release();
-		return value;
-	}while(0);
-	
-	// failed
-	if( pElement )
-	{
-		pElement->Release();
-	}
-	return string( "" );
+        CComBSTR text;
+        if ( S_OK != pElement->get_text ( &text ) )
+        {
+            break;
+        }
+
+        string value = W2A ( text );
+        pElement->Release();
+        return value;
+    }
+    while ( 0 );
+
+    // failed
+    if ( pElement )
+    {
+        pElement->Release();
+    }
+    return string ( "" );
 }
 
 
@@ -86,35 +87,36 @@ string XMLUtils::GetElementValue
 
 bool XMLUtils::SetElementValue
 (
-	IXMLDOMNode* _pRoot,
-	CComBSTR _path,
-	CComBSTR _value
+    IXMLDOMNode* _pRoot,
+    CComBSTR _path,
+    CComBSTR _value
 )
 {
-	USES_CONVERSION;
-	IXMLDOMNode* pElement = NULL;
+    USES_CONVERSION;
+    IXMLDOMNode* pElement = NULL;
 
-	do
-	{
-		if( S_OK != _pRoot->selectSingleNode( _path, &pElement ) )
-		{
-			break;
-		}
-      
-		if( S_OK != pElement->put_text( _value ) )
-		{
-			break;
-		}
+    do
+    {
+        if ( S_OK != _pRoot->selectSingleNode ( _path, &pElement ) )
+        {
+            break;
+        }
 
-		return true;
-	}while(0);
-	
-	// failed
-	if( pElement )
-	{
-		pElement->Release();
-	}
-	return false;
+        if ( S_OK != pElement->put_text ( _value ) )
+        {
+            break;
+        }
+
+        return true;
+    }
+    while ( 0 );
+
+    // failed
+    if ( pElement )
+    {
+        pElement->Release();
+    }
+    return false;
 }
 
 
@@ -126,50 +128,51 @@ bool XMLUtils::SetElementValue
 
 string XMLUtils::GetAttributeValue
 (
-	IXMLDOMNode* _pNode,
-	CComBSTR _attributeName
+    IXMLDOMNode* _pNode,
+    CComBSTR _attributeName
 )
 {
-	USES_CONVERSION;
-	
-	IXMLDOMNamedNodeMap *pAttributes = NULL;
-	IXMLDOMNode* pAttribute = NULL;
+    USES_CONVERSION;
 
-	do
-	{
-		if( S_OK != _pNode->get_attributes( &pAttributes ) )
-		{
-			break;
-		}
-      
-		if( S_OK != pAttributes->getNamedItem( _attributeName, &pAttribute ) )
-		{
-			break;
-		}
-      
-		CComBSTR text;
-		if( S_OK != pAttribute->get_text( &text ) )
-		{
-			break;
-		}
+    IXMLDOMNamedNodeMap *pAttributes = NULL;
+    IXMLDOMNode* pAttribute = NULL;
 
-		string value = W2A( text );
-		pAttribute->Release();
-		pAttributes->Release();
-		return value;
-	}while(0);
-	
-	// failed
-	if( pAttribute )
-	{
-		pAttribute->Release();
-	}
-	if( pAttributes )
-	{
-		pAttributes->Release();
-	}
+    do
+    {
+        if ( S_OK != _pNode->get_attributes ( &pAttributes ) )
+        {
+            break;
+        }
 
-	return string( "" );
+        if ( S_OK != pAttributes->getNamedItem ( _attributeName, &pAttribute ) )
+        {
+            break;
+        }
+
+        CComBSTR text;
+        if ( S_OK != pAttribute->get_text ( &text ) )
+        {
+            break;
+        }
+
+        string value = W2A ( text );
+        pAttribute->Release();
+        pAttributes->Release();
+        return value;
+    }
+    while ( 0 );
+
+    // failed
+    if ( pAttribute )
+    {
+        pAttribute->Release();
+    }
+    if ( pAttributes )
+    {
+        pAttributes->Release();
+    }
+
+    return string ( "" );
 }
 
 
@@ -181,45 +184,46 @@ string XMLUtils::GetAttributeValue
 
 bool XMLUtils::SetAttributeValue
 (
-	IXMLDOMNode* _pNode,
-	CComBSTR _attributeName,
-	CComBSTR _value
+    IXMLDOMNode* _pNode,
+    CComBSTR _attributeName,
+    CComBSTR _value
 )
 {
-	bool bRetVal = false;
-	IXMLDOMNamedNodeMap *pAttributes = NULL;
-	IXMLDOMNode* pAttribute = NULL;
+    bool bRetVal = false;
+    IXMLDOMNamedNodeMap *pAttributes = NULL;
+    IXMLDOMNode* pAttribute = NULL;
 
-	do
-	{
-		if( S_OK != _pNode->get_attributes( &pAttributes ) )
-		{
-			break;
-		}
-      
-		if( S_OK != pAttributes->getNamedItem( _attributeName, &pAttribute ) )
-		{
-			break;
-		}
-      
-		if( S_OK != pAttribute->put_text( _value ) )
-		{
-			break;
-		}
-		bRetVal = true;
-	}while(0);
-	
-	// failed
-	if( pAttribute )
-	{
-		pAttribute->Release();
-	}
-	if( pAttributes )
-	{
-		pAttributes->Release();
-	}
+    do
+    {
+        if ( S_OK != _pNode->get_attributes ( &pAttributes ) )
+        {
+            break;
+        }
 
-	return bRetVal;
+        if ( S_OK != pAttributes->getNamedItem ( _attributeName, &pAttribute ) )
+        {
+            break;
+        }
+
+        if ( S_OK != pAttribute->put_text ( _value ) )
+        {
+            break;
+        }
+        bRetVal = true;
+    }
+    while ( 0 );
+
+    // failed
+    if ( pAttribute )
+    {
+        pAttribute->Release();
+    }
+    if ( pAttributes )
+    {
+        pAttributes->Release();
+    }
+
+    return bRetVal;
 }
 
 
@@ -231,24 +235,24 @@ bool XMLUtils::SetAttributeValue
 
 IXMLDOMNode* XMLUtils::AddElement
 (
-	IXMLDOMDocument* _pXMLDoc,
-	IXMLDOMNode* _pParent,
-	CComBSTR _elementName,
-	CComBSTR _elementValue
+    IXMLDOMDocument* _pXMLDoc,
+    IXMLDOMNode* _pParent,
+    CComBSTR _elementName,
+    CComBSTR _elementValue
 )
 {
-	IXMLDOMElement* pNode = NULL;
-	_pXMLDoc->createElement( _elementName, &pNode );
-	if( pNode )
-	{
-		pNode->put_text( _elementValue );
-		IXMLDOMNode* pNewNode = NULL;
-		_pParent->appendChild( pNode, &pNewNode );
-		pNewNode->Release();
-		return pNode;
-	}
+    IXMLDOMElement* pNode = NULL;
+    _pXMLDoc->createElement ( _elementName, &pNode );
+    if ( pNode )
+    {
+        pNode->put_text ( _elementValue );
+        IXMLDOMNode* pNewNode = NULL;
+        _pParent->appendChild ( pNode, &pNewNode );
+        pNewNode->Release();
+        return pNode;
+    }
 
-	return NULL;
+    return NULL;
 }
 
 
@@ -260,33 +264,33 @@ IXMLDOMNode* XMLUtils::AddElement
 
 bool XMLUtils::AddAttribute
 (
-	IXMLDOMDocument* _pXMLDoc,
-	IXMLDOMNode* _pNode,
-	CComBSTR _attributeName,
-	CComBSTR _attributeValue
+    IXMLDOMDocument* _pXMLDoc,
+    IXMLDOMNode* _pNode,
+    CComBSTR _attributeName,
+    CComBSTR _attributeValue
 )
 {
-	IXMLDOMNamedNodeMap *pAttributes = NULL;
-	if( S_OK != _pNode->get_attributes( &pAttributes ) )
-	{
-		return false;
-	}
+    IXMLDOMNamedNodeMap *pAttributes = NULL;
+    if ( S_OK != _pNode->get_attributes ( &pAttributes ) )
+    {
+        return false;
+    }
 
-	IXMLDOMAttribute* pNode = NULL;
-	_pXMLDoc->createAttribute( _attributeName, &pNode );
-	if( pNode )
-	{
-    
-		IXMLDOMNode* pNewNode;
-		pAttributes->setNamedItem( pNode, &pNewNode );
-		if( pNewNode )
-		{
-			pNewNode->put_text( _attributeValue );
-			return true;
-		}
-	}
+    IXMLDOMAttribute* pNode = NULL;
+    _pXMLDoc->createAttribute ( _attributeName, &pNode );
+    if ( pNode )
+    {
 
-	return false;
+        IXMLDOMNode* pNewNode;
+        pAttributes->setNamedItem ( pNode, &pNewNode );
+        if ( pNewNode )
+        {
+            pNewNode->put_text ( _attributeValue );
+            return true;
+        }
+    }
+
+    return false;
 }
 
 
@@ -298,47 +302,47 @@ bool XMLUtils::AddAttribute
 
 xpl::xplMsg* XMLUtils::ReadMsg
 (
-	IXMLDOMNode* _pRoot
+    IXMLDOMNode* _pRoot
 )
 {
-	// Read the message type
-	string type = XMLUtils::GetElementValue( _pRoot, L"Type" );
-	string target = XMLUtils::GetElementValue( _pRoot, L"Target" );
-	string schemaClass = XMLUtils::GetElementValue( _pRoot, L"SchemaClass" );
-	string schemaType = XMLUtils::GetElementValue( _pRoot, L"SchemaType" );
+    // Read the message type
+    string type = XMLUtils::GetElementValue ( _pRoot, L"Type" );
+    string target = XMLUtils::GetElementValue ( _pRoot, L"Target" );
+    string schemaClass = XMLUtils::GetElementValue ( _pRoot, L"SchemaClass" );
+    string schemaType = XMLUtils::GetElementValue ( _pRoot, L"SchemaType" );
 
-	// Create the basic message
-	xpl::xplMsg* pMsg = xpl::xplMsg::Create( type, "x-x.x", target, schemaClass, schemaType );
-	if( !pMsg )
-	{
-		return NULL;
-	}
+    // Create the basic message
+    xpl::xplMsg* pMsg = xpl::xplMsg::Create ( type, "x-x.x", target, schemaClass, schemaType );
+    if ( !pMsg )
+    {
+        return NULL;
+    }
 
-	// Read the body 
-	IXMLDOMNode* pNode;
-	CComBSTR nodeName;
+    // Read the body
+    IXMLDOMNode* pNode;
+    CComBSTR nodeName;
 
-	_pRoot->get_firstChild( &pNode );
-	while( pNode )
-	{
-		pNode->get_nodeName( &nodeName );
-		
-		if( nodeName == L"Item" )
-		{
-			string name = XMLUtils::GetAttributeValue( pNode, L"name" );
-			string value = XMLUtils::GetAttributeValue( pNode, L"value" );
+    _pRoot->get_firstChild ( &pNode );
+    while ( pNode )
+    {
+        pNode->get_nodeName ( &nodeName );
 
-			pMsg->AddValue( name, value );
-		}
+        if ( nodeName == L"Item" )
+        {
+            string name = XMLUtils::GetAttributeValue ( pNode, L"name" );
+            string value = XMLUtils::GetAttributeValue ( pNode, L"value" );
 
-		// Move to the next type
-		IXMLDOMNode* pNextNode;
-		pNode->get_nextSibling( &pNextNode );
-		pNode->Release();
-		pNode = pNextNode;
-	}
+            pMsg->AddValue ( name, value );
+        }
 
-	return pMsg;
+        // Move to the next type
+        IXMLDOMNode* pNextNode;
+        pNode->get_nextSibling ( &pNextNode );
+        pNode->Release();
+        pNode = pNextNode;
+    }
+
+    return pMsg;
 }
 
 
@@ -350,41 +354,41 @@ xpl::xplMsg* XMLUtils::ReadMsg
 
 bool XMLUtils::WriteMsg
 (
-	IXMLDOMDocument* _pXMLDoc,
-	IXMLDOMNode* _pParent,
-	xpl::xplMsg* _pMsg
+    IXMLDOMDocument* _pXMLDoc,
+    IXMLDOMNode* _pParent,
+    xpl::xplMsg* _pMsg
 )
 {
-	IXMLDOMNode* pMsgNode = XMLUtils::AddElement( _pXMLDoc, _pParent, L"xPLMsg", L"" );
-	if( !pMsgNode )
-	{
-		return false;
-	}
+    IXMLDOMNode* pMsgNode = XMLUtils::AddElement ( _pXMLDoc, _pParent, L"xPLMsg", L"" );
+    if ( !pMsgNode )
+    {
+        return false;
+    }
 
-	XMLUtils::AddElement( _pXMLDoc, pMsgNode, L"Type", _pMsg->GetType().c_str() );
-	XMLUtils::AddElement( _pXMLDoc, pMsgNode, L"Target", _pMsg->GetTarget().c_str() );
-	XMLUtils::AddElement( _pXMLDoc, pMsgNode, L"SchemaClass", _pMsg->GetSchemaClass().c_str() );
-	XMLUtils::AddElement( _pXMLDoc, pMsgNode, L"SchemaType", _pMsg->GetSchemaType().c_str() );
+    XMLUtils::AddElement ( _pXMLDoc, pMsgNode, L"Type", _pMsg->GetType().c_str() );
+    XMLUtils::AddElement ( _pXMLDoc, pMsgNode, L"Target", _pMsg->GetTarget().c_str() );
+    XMLUtils::AddElement ( _pXMLDoc, pMsgNode, L"SchemaClass", _pMsg->GetSchemaClass().c_str() );
+    XMLUtils::AddElement ( _pXMLDoc, pMsgNode, L"SchemaType", _pMsg->GetSchemaType().c_str() );
 
-	// Write the body
-	for( int i=0; i<_pMsg->GetNumMsgItems(); ++i )
-	{
-		xpl::xplMsgItem const* pMsgItem = _pMsg->GetMsgItem( i );
-		string name = pMsgItem->GetName();
-		for( int j=0; j<pMsgItem->GetNumValues(); ++j )
-		{
-			string value = pMsgItem->GetValue( j );
+    // Write the body
+    for ( int i=0; i<_pMsg->GetNumMsgItems(); ++i )
+    {
+        xpl::xplMsgItem const* pMsgItem = _pMsg->GetMsgItem ( i );
+        string name = pMsgItem->GetName();
+        for ( int j=0; j<pMsgItem->GetNumValues(); ++j )
+        {
+            string value = pMsgItem->GetValue ( j );
 
-			IXMLDOMNode* pItemNode = XMLUtils::AddElement( _pXMLDoc, pMsgNode, L"Item", "" );
-			if( pItemNode )
-			{
-				XMLUtils::AddAttribute( _pXMLDoc, pItemNode, L"name", name.c_str() );
-				XMLUtils::AddAttribute( _pXMLDoc, pItemNode, L"value", value.c_str() );
-			}
-		}
-	}
+            IXMLDOMNode* pItemNode = XMLUtils::AddElement ( _pXMLDoc, pMsgNode, L"Item", "" );
+            if ( pItemNode )
+            {
+                XMLUtils::AddAttribute ( _pXMLDoc, pItemNode, L"name", name.c_str() );
+                XMLUtils::AddAttribute ( _pXMLDoc, pItemNode, L"value", value.c_str() );
+            }
+        }
+    }
 
-	return true;
+    return true;
 }
 
 

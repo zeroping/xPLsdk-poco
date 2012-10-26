@@ -45,47 +45,47 @@ using namespace xpl;
 ****																	****
 ***************************************************************************/
 
-xplFilter::xplFilter( string const& _filterStr )
+xplFilter::xplFilter ( string const& _filterStr )
 {
-	// Parse the string an break it into its elements
-	m_filterElementMask = 0;
-	string remainder = _filterStr;
-	
-	StringSplit( remainder, '.', &m_msgType, &remainder );
-	if( m_msgType != string("*") )
-	{
-		m_filterElementMask |= FilterElement_MsgType;
-	}
+    // Parse the string an break it into its elements
+    m_filterElementMask = 0;
+    string remainder = _filterStr;
 
-	StringSplit( remainder, '.', &m_vendor, &remainder );
-	if( m_vendor != string("*") )
-	{
-		m_filterElementMask |= FilterElement_Vendor;
-	}
+    StringSplit ( remainder, '.', &m_msgType, &remainder );
+    if ( m_msgType != string ( "*" ) )
+    {
+        m_filterElementMask |= FilterElement_MsgType;
+    }
 
-	StringSplit( remainder, '.', &m_device, &remainder );
-	if( m_device != string("*") )
-	{
-		m_filterElementMask |= FilterElement_Device;
-	}
-	
-	StringSplit( remainder, '.', &m_instance, &remainder );
-	if( m_instance != string("*") )
-	{
-		m_filterElementMask |= FilterElement_Instance;
-	}
-	
-	StringSplit( remainder, '.', &m_class, &remainder );
-	if( m_class != string("*") )
-	{
-		m_filterElementMask |= FilterElement_Class;
-	}
-	
-	StringSplit( remainder, '.', &m_type, &remainder );
-	if( m_type != string("*") )
-	{
-		m_filterElementMask |= FilterElement_Type;
-	}
+    StringSplit ( remainder, '.', &m_vendor, &remainder );
+    if ( m_vendor != string ( "*" ) )
+    {
+        m_filterElementMask |= FilterElement_Vendor;
+    }
+
+    StringSplit ( remainder, '.', &m_device, &remainder );
+    if ( m_device != string ( "*" ) )
+    {
+        m_filterElementMask |= FilterElement_Device;
+    }
+
+    StringSplit ( remainder, '.', &m_instance, &remainder );
+    if ( m_instance != string ( "*" ) )
+    {
+        m_filterElementMask |= FilterElement_Instance;
+    }
+
+    StringSplit ( remainder, '.', &m_class, &remainder );
+    if ( m_class != string ( "*" ) )
+    {
+        m_filterElementMask |= FilterElement_Class;
+    }
+
+    StringSplit ( remainder, '.', &m_type, &remainder );
+    if ( m_type != string ( "*" ) )
+    {
+        m_filterElementMask |= FilterElement_Type;
+    }
 }
 
 
@@ -95,66 +95,66 @@ xplFilter::xplFilter( string const& _filterStr )
 ****																	****
 ***************************************************************************/
 
-bool xplFilter::Allow( xplMsg const& _msg )const
+bool xplFilter::Allow ( xplMsg const& _msg ) const
 {
-	// Check the message type
-	if( ( m_filterElementMask & FilterElement_MsgType ) 
-		&& ( _msg.GetType() != m_msgType ) )
-	{
-		return false;
-	}
+    // Check the message type
+    if ( ( m_filterElementMask & FilterElement_MsgType )
+            && ( _msg.GetType() != m_msgType ) )
+    {
+        return false;
+    }
 
-	// Check the schema class
-	if( ( m_filterElementMask & FilterElement_Class ) 
-		&& ( _msg.GetSchemaClass() != m_class ) )
-	{
-		return false;
-	}
+    // Check the schema class
+    if ( ( m_filterElementMask & FilterElement_Class )
+            && ( _msg.GetSchemaClass() != m_class ) )
+    {
+        return false;
+    }
 
-	// Check the schema type
-	if( ( m_filterElementMask & FilterElement_Type ) 
-		&& ( _msg.GetSchemaType() != m_type ) )
-	{
-		return false;
-	}
+    // Check the schema type
+    if ( ( m_filterElementMask & FilterElement_Type )
+            && ( _msg.GetSchemaType() != m_type ) )
+    {
+        return false;
+    }
 
-	// Check the message source
-	if( m_filterElementMask & (FilterElement_Vendor|FilterElement_Device|FilterElement_Instance) )
-	{
-		// Extract the vendor from the message source
-		string vendor;
-		string deviceInstance;
-		StringSplit( _msg.GetSource(), '-', &vendor, &deviceInstance );
+    // Check the message source
+    if ( m_filterElementMask & ( FilterElement_Vendor|FilterElement_Device|FilterElement_Instance ) )
+    {
+        // Extract the vendor from the message source
+        string vendor;
+        string deviceInstance;
+        StringSplit ( _msg.GetSource(), '-', &vendor, &deviceInstance );
 
-		// Check the message source vendor
-		if( ( m_filterElementMask & FilterElement_Vendor ) 
-			&& ( vendor != m_vendor ) )
-		{
-			return false;
-		}
+        // Check the message source vendor
+        if ( ( m_filterElementMask & FilterElement_Vendor )
+                && ( vendor != m_vendor ) )
+        {
+            return false;
+        }
 
-		if( m_filterElementMask & (FilterElement_Device|FilterElement_Instance) )
-		{
-			// Extract the device and instance from the message source
-			string device;
-			string instance;
-			StringSplit( deviceInstance, '.', &device, &instance );
+        if ( m_filterElementMask & ( FilterElement_Device|FilterElement_Instance ) )
+        {
+            // Extract the device and instance from the message source
+            string device;
+            string instance;
+            StringSplit ( deviceInstance, '.', &device, &instance );
 
-			// Check the message source device
-			if( ( m_filterElementMask & FilterElement_Device ) 
-				&& ( device != m_device ) )
-			{
-				return false;
-			}
+            // Check the message source device
+            if ( ( m_filterElementMask & FilterElement_Device )
+                    && ( device != m_device ) )
+            {
+                return false;
+            }
 
-			if( ( m_filterElementMask & FilterElement_Instance ) 
-				&& ( instance != m_instance ) )
-			{
-				return false;
-			}
-		}
-	}
+            if ( ( m_filterElementMask & FilterElement_Instance )
+                    && ( instance != m_instance ) )
+            {
+                return false;
+            }
+        }
+    }
 
-	return true;
+    return true;
 }
 

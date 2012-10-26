@@ -44,48 +44,54 @@ namespace xpl
  * Provides reference counting for xPL objects.
  * Any class wishing to include reference counting should be derived from xplRef.
  * Derived classes must declare their destructor as protected virtual.
- * On construction, the reference count is set to one.  Calls to AddRef increment 
+ * On construction, the reference count is set to one.  Calls to AddRef increment
  * the count.  Calls to Release decrement the count.  When the count reaches
  * zero, the object is deleted.
  */
 class xplRef
 {
 public:
-	/**
-	 * Initializes the RefCount to one.  The object
-	 * can only be deleted through a call to Release.
-	 * @see AddRef, Release
-	 */
-	xplRef(){ m_refs = 1; }
-
-	/**
-	 * Increases the reference count of the object.
-	 * Every call to AddRef requires a matching call
-	 * to Release before the object will be deleted.
-	 * @see Release
-	 */
-	void AddRef(){ ++m_refs; }
+    /**
+     * Initializes the RefCount to one.  The object
+     * can only be deleted through a call to Release.
+     * @see AddRef, Release
+     */
+    xplRef()
+    {
+        m_refs = 1;
+    }
 
     /**
-	 * Removes a reference to an object.
-	 * If this was the last reference to the message, the 
-	 * object is deleted.
-	 * @see AddRef
-	 */
-	void Release()
-	{
-		if( 0 >= ( --m_refs ) )
-		{
-			delete this;
-		}
-	}
+     * Increases the reference count of the object.
+     * Every call to AddRef requires a matching call
+     * to Release before the object will be deleted.
+     * @see Release
+     */
+    void AddRef()
+    {
+        ++m_refs;
+    }
+
+    /**
+     * Removes a reference to an object.
+     * If this was the last reference to the message, the
+     * object is deleted.
+     * @see AddRef
+     */
+    void Release()
+    {
+        if ( 0 >= ( --m_refs ) )
+        {
+            delete this;
+        }
+    }
 
 protected:
-	virtual ~xplRef(){}
+    virtual ~xplRef() {}
 
 private:
-	// Reference counting
-	uint32	m_refs;
+    // Reference counting
+    uint32	m_refs;
 
 }; // class xplRef
 

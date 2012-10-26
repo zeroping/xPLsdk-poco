@@ -45,7 +45,7 @@
 using namespace xpl;
 
 #ifndef EVENT_ELOG
- #define EVENT_ELOG 0x000003E8L
+#define EVENT_ELOG 0x000003E8L
 #endif
 
 EventLog* EventLog::s_pInstance = NULL;
@@ -59,36 +59,36 @@ EventLog* EventLog::s_pInstance = NULL;
 
 EventLog::EventLog
 (
-	string const& _appName,
-	bool _bRegisterApp
+    string const& _appName,
+    bool _bRegisterApp
 )
 {
-	m_hLog = RegisterEventSource( NULL, _appName.c_str() );
- 
-	if( _bRegisterApp )
+    m_hLog = RegisterEventSource ( NULL, _appName.c_str() );
+
+    if ( _bRegisterApp )
     {
-		HKEY hk; 
-        
-		// Add your source name as a subkey under the Application 
-        // key in the EventLog registry key. 
-        string appKey = string( "SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\" ) + _appName;
-        
-		if( RegCreateKey( HKEY_LOCAL_MACHINE, appKey.c_str(), &hk ) == ERROR_SUCCESS )
+        HKEY hk;
+
+        // Add your source name as a subkey under the Application
+        // key in the EventLog registry key.
+        string appKey = string ( "SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\" ) + _appName;
+
+        if ( RegCreateKey ( HKEY_LOCAL_MACHINE, appKey.c_str(), &hk ) == ERROR_SUCCESS )
         {
-			char exePath[MAX_PATH];
-			GetModuleFileName( GetModuleHandle(NULL), exePath, MAX_PATH );
-               
-            // Add the name to the EventMessageFile subkey. 
-            if( ERROR_SUCCESS == RegSetValueEx( hk, "EventMessageFile", 0, REG_EXPAND_SZ, (LPBYTE)exePath, ()(strlen( exePath )+1) ) )
+            char exePath[MAX_PATH];
+            GetModuleFileName ( GetModuleHandle ( NULL ), exePath, MAX_PATH );
+
+            // Add the name to the EventMessageFile subkey.
+            if ( ERROR_SUCCESS == RegSetValueEx ( hk, "EventMessageFile", 0, REG_EXPAND_SZ, ( LPBYTE ) exePath, () ( strlen ( exePath ) +1 ) ) )
             {
-				// Set the supported event types in the TypesSupported subkey. 
-                 dwData = EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE | EVENTLOG_INFORMATION_TYPE | EVENTLOG_AUDIT_FAILURE;
-                RegSetValueEx( hk, "TypesSupported", 0, REG_, (LPBYTE) &dwData, sizeof() ); 
+                // Set the supported event types in the TypesSupported subkey.
+                dwData = EVENTLOG_ERROR_TYPE | EVENTLOG_WARNING_TYPE | EVENTLOG_INFORMATION_TYPE | EVENTLOG_AUDIT_FAILURE;
+                RegSetValueEx ( hk, "TypesSupported", 0, REG_, ( LPBYTE ) &dwData, sizeof() );
             }
-			
-			RegCloseKey( hk ); 
-		}
-	}
+
+            RegCloseKey ( hk );
+        }
+    }
 }
 
 
@@ -100,10 +100,10 @@ EventLog::EventLog
 
 EventLog::~EventLog()
 {
-     if( m_hLog )
-	 {
-		 DeregisterEventSource( m_hLog );
-	 }
+    if ( m_hLog )
+    {
+        DeregisterEventSource ( m_hLog );
+    }
 }
 
 
@@ -113,10 +113,10 @@ EventLog::~EventLog()
 ****	EventLog::ReportFailure											****
 ****																	****
 ***************************************************************************/
- 
-void EventLog::ReportFailure( string _msg )
+
+void EventLog::ReportFailure ( string _msg )
 {
-    return poco_fatal(logger, _msg);
+    return poco_fatal ( logger, _msg );
 }
 
 /***************************************************************************
@@ -125,9 +125,9 @@ void EventLog::ReportFailure( string _msg )
 ****																	****
 ***************************************************************************/
 
-void EventLog::ReportError( string _msg )
+void EventLog::ReportError ( string _msg )
 {
-    return poco_error(logger, _msg);
+    return poco_error ( logger, _msg );
 }
 
 
@@ -137,9 +137,9 @@ void EventLog::ReportError( string _msg )
 ****																	****
 ***************************************************************************/
 
-void EventLog::ReportWarning( string _msg )
+void EventLog::ReportWarning ( string _msg )
 {
-    return poco_warning(logger, _msg);
+    return poco_warning ( logger, _msg );
 }
 
 
@@ -149,8 +149,8 @@ void EventLog::ReportWarning( string _msg )
 ****																	****
 ***************************************************************************/
 
-void EventLog::ReportInformation( string _msg )
+void EventLog::ReportInformation ( string _msg )
 {
-    return poco_information(logger, _msg);
+    return poco_information ( logger, _msg );
 }
 

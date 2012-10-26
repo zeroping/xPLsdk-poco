@@ -54,38 +54,38 @@ class Sensor;
 class SensorManager
 {
 public:
-	static SensorManager* Create()
-	{
-		assert( NULL == s_pInstance );
-		s_pInstance = new SensorManager();
-		return s_pInstance;
-	}
+    static SensorManager* Create()
+    {
+        assert ( NULL == s_pInstance );
+        s_pInstance = new SensorManager();
+        return s_pInstance;
+    }
 
-	static SensorManager* Get()
-	{
-		assert( NULL != s_pInstance );
-		return s_pInstance;
-	}
+    static SensorManager* Get()
+    {
+        assert ( NULL != s_pInstance );
+        return s_pInstance;
+    }
 
-	static void Destroy()
-	{
-		assert( NULL != s_pInstance );
-		delete s_pInstance;
-		s_pInstance = NULL;
-	}
+    static void Destroy()
+    {
+        assert ( NULL != s_pInstance );
+        delete s_pInstance;
+        s_pInstance = NULL;
+    }
 
-	xplMsg* ProcessRF( uint8* _rf, string const& _msgSource );
+    xplMsg* ProcessRF ( uint8* _rf, string const& _msgSource );
 
 private:
-	SensorManager();
-	~SensorManager();
+    SensorManager();
+    ~SensorManager();
 
-	bool LoadSensors();
-	bool SaveSensors();
+    bool LoadSensors();
+    bool SaveSensors();
 
-	map<uint8,Sensor*>		m_sensorMap;
+    map<uint8,Sensor*>		m_sensorMap;
 
-	static SensorManager*	s_pInstance;
+    static SensorManager*	s_pInstance;
 };
 
 #endif

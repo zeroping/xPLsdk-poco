@@ -43,7 +43,7 @@
 namespace xpl
 {
 
-/** 
+/**
  * Reads a line of text from a string.
  * Extracts a line of text (i.e everything from the start position up to the
  * next newline or end of string), and removes any whitespace from both ends.
@@ -53,26 +53,26 @@ namespace xpl
  * @param _pLine pointer to a string that will be filled with the line of text.
  * @return A new start position to use in subsequent calls.
  */
-uint32 StringReadLine( string const& _str, uint32 const _start, string* _pLine );
+uint32 StringReadLine ( string const& _str, uint32 const _start, string* _pLine );
 
-/** 
+/**
  * Splits a string into two pieces.
  * Finds the first instance of the specified character and splits the string
  * into the two pieces to the left and right of this character.  The character
  * itself is not included in either string.
  * @param _source string containing the text to be split.
- * @param _delim the delimiting character marking the point where the string 
+ * @param _delim the delimiting character marking the point where the string
  * should be split.
- * @param _pLeftStr pointer to a string that will be filled with the text to the 
+ * @param _pLeftStr pointer to a string that will be filled with the text to the
  * left of the delimiting character.
- * @param _pRightStr pointer to a string that will be filled with the text to the 
+ * @param _pRightStr pointer to a string that will be filled with the text to the
  * right of the delimiting character.
  * @return True if the delimiting character was found and the string split in two.
  * Otherwise returns false.
  */
-bool StringSplit( string const& _source, char const _delim, string* _pLeftStr, string* _pRightStr );
+bool StringSplit ( string const& _source, char const _delim, string* _pLeftStr, string* _pRightStr );
 
-/** 
+/**
  * Removes whitespace from around the string.
  * Removes whitespace characters (spaces, tabs and newlines) from both the start
  * and end of the string.
@@ -80,7 +80,7 @@ bool StringSplit( string const& _source, char const _delim, string* _pLeftStr, s
  * @return A string containing the text with leading and trailing whitespace
  * removed
  */
-string	StringTrim( string const& _str );
+string	StringTrim ( string const& _str );
 
 /**
  * Converts a string to all lower case
@@ -88,7 +88,7 @@ string	StringTrim( string const& _str );
  * @return A string containing the lower case version of the one passed in.
  * @see StringToUpper
  */
-string	StringToLower( string const& _str );
+string	StringToLower ( string const& _str );
 
 /**
  * Converts a string to all upper case
@@ -96,7 +96,7 @@ string	StringToLower( string const& _str );
  * @return A string containing the upper case version of the one passed in.
  * @see StringToLower
  */
-string	StringToUpper( string const& _str );
+string	StringToUpper ( string const& _str );
 
 /**
  * Converts a float to a string
@@ -106,22 +106,28 @@ string	StringToUpper( string const& _str );
  * @return A string containing a text version of the float.
  * @see StringToLower
  */
-string	StringFromFloat( float _f, uint32 _places, bool _bTrim = false );
+string	StringFromFloat ( float _f, uint32 _places, bool _bTrim = false );
 
 #ifdef UNICODE
 
-// PocketPC and Windows MCE plugins use unicode - some functions (like CreateFile) require 
+// PocketPC and Windows MCE plugins use unicode - some functions (like CreateFile) require
 // that string arguments to be converted to unicode first.
 class UnicodeString
 {
 public:
-	UnicodeString( char const* _asciiString );
-	~UnicodeString(){ delete [] m_pBuffer; }
+    UnicodeString ( char const* _asciiString );
+    ~UnicodeString()
+    {
+        delete [] m_pBuffer;
+    }
 
-	uint16* c_str(){ return m_pBuffer; }
+    uint16* c_str()
+    {
+        return m_pBuffer;
+    }
 
 private:
-	uint16*	m_pBuffer;
+    uint16*	m_pBuffer;
 };
 
 #endif // #ifdef UNICODE

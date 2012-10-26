@@ -51,30 +51,30 @@ using namespace xpl;
 class W800
 {
 public:
-	W800();
-	virtual ~W800();
+    W800();
+    virtual ~W800();
 
-	static void MainProc( HANDLE _hActive, HANDLE _hExit, void* pContext );
+    static void MainProc ( HANDLE _hActive, HANDLE _hExit, void* pContext );
 
 private:
-	void Run( HANDLE _hActive, HANDLE _hExit );
+    void Run ( HANDLE _hActive, HANDLE _hExit );
 
-	// Try to handle any received messages.
-	void HandleMessages( void );
+    // Try to handle any received messages.
+    void HandleMessages ( void );
 
-	// Set the device parameters according to the contents of the config items
-	void Configure();
+    // Set the device parameters according to the contents of the config items
+    void Configure();
 
-	xplDevice*			m_pDevice;
-	xplComms*			m_pComms;
-	W800RF32*			m_pW800;
-	xplMsg*				m_pMsg;
-	bool				m_bBlockDuplicates;
-	int64				m_nextMessageTime;
-	int32				m_comPort;
-	uint32				m_timeout;
-	HANDLE				m_hRxNotify;
-	static string const	c_version;
+    xplDevice*			m_pDevice;
+    xplComms*			m_pComms;
+    W800RF32*			m_pW800;
+    xplMsg*				m_pMsg;
+    bool				m_bBlockDuplicates;
+    int64				m_nextMessageTime;
+    int32				m_comPort;
+    uint32				m_timeout;
+    HANDLE				m_hRxNotify;
+    static string const	c_version;
 };
 
 #endif //_W800_H

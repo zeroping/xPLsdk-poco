@@ -1,12 +1,14 @@
 <<<<<<< HEAD
 # Cmake Build dir
 ###################
-xPL_codeblocks/build/*
-xPL_codeblocks/bin/*
+build/*
+bin/*
 *cmake
 *bin
 build*
 *kdev4
+CMakeFiles
+Makefile
 
 # temp files #
 ###################

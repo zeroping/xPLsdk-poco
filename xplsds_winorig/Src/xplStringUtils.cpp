@@ -50,48 +50,48 @@ string const c_emptyString;
 ***************************************************************************/
 
 uint32 xpl::StringReadLine
-( 
-	string const& _str, 
-	uint32 const _start, 
-	string* _pLine 
+(
+    string const& _str,
+    uint32 const _start,
+    string* _pLine
 )
 {
-	// Look for the next linefeed or end of string
-	uint32 pos = _start;
+    // Look for the next linefeed or end of string
+    uint32 pos = _start;
 
-	while( 1 )
-	{
-		char ch;
-		while( ch = _str[pos++] )
-		{
-			if( ( ch == '\n' ) || ( ch == '\r' ) )
-			{
-				break;
-			}
-		}
+    while ( 1 )
+    {
+        char ch;
+        while ( ch = _str[pos++] )
+        {
+            if ( ( ch == '\n' ) || ( ch == '\r' ) )
+            {
+                break;
+            }
+        }
 
-		*_pLine = StringTrim( _str.substr( _start, pos-(_start+1) ) );
+        *_pLine = StringTrim ( _str.substr ( _start, pos- ( _start+1 ) ) );
 
-		if( !ch )
-		{
-			// We have reached the end of the data
-			// Move the pointer back to the zero terminator.
-			pos--;
-			break;
-		}
+        if ( !ch )
+        {
+            // We have reached the end of the data
+            // Move the pointer back to the zero terminator.
+            pos--;
+            break;
+        }
 
-		if( !_pLine->empty() )
-		{
-			// We have a string
-			break;
-		}
+        if ( !_pLine->empty() )
+        {
+            // We have a string
+            break;
+        }
 
-		// String was empty, so we carry on.
-	}
+        // String was empty, so we carry on.
+    }
 
-	return( pos );
+    return ( pos );
 }
-				
+
 
 /***************************************************************************
 ****																	****
@@ -103,24 +103,24 @@ uint32 xpl::StringReadLine
 ***************************************************************************/
 
 bool xpl::StringSplit
-( 
-	string const& _source, 
-	char const _delim, 
-	string* _pLeftStr, 
-	string* _pRightStr 
+(
+    string const& _source,
+    char const _delim,
+    string* _pLeftStr,
+    string* _pRightStr
 )
 {
-	uint32 pos = (uint32)_source.find_first_of( _delim );
-	if( string::npos != pos )
-	{
-		// Character found
-		*_pLeftStr = StringTrim( _source.substr( 0, pos ) ); 
-		*_pRightStr = StringTrim( _source.substr( pos+1 ) );
-		return true;
-	}
+    uint32 pos = ( uint32 ) _source.find_first_of ( _delim );
+    if ( string::npos != pos )
+    {
+        // Character found
+        *_pLeftStr = StringTrim ( _source.substr ( 0, pos ) );
+        *_pRightStr = StringTrim ( _source.substr ( pos+1 ) );
+        return true;
+    }
 
-	// Character not found in string
-	return false;
+    // Character not found in string
+    return false;
 }
 
 
@@ -133,39 +133,39 @@ bool xpl::StringSplit
 ***************************************************************************/
 
 string xpl::StringTrim
-( 
-	string const& _str 
+(
+    string const& _str
 )
 {
-	uint32 start = 0;
-	uint32 end = (uint32)_str.size();
+    uint32 start = 0;
+    uint32 end = ( uint32 ) _str.size();
 
-	char ch;
-    while( ch = _str[start] )
+    char ch;
+    while ( ch = _str[start] )
     {
-		if( (ch != ' ') && (ch != '\t') && (ch != '\n' ) && (ch != '\r' ) )
-		{
-			break;
-		}
+        if ( ( ch != ' ' ) && ( ch != '\t' ) && ( ch != '\n' ) && ( ch != '\r' ) )
+        {
+            break;
+        }
         ++start;
     }
 
-    while( end-- )
+    while ( end-- )
     {
-		ch = _str[end];
-		if( (ch != ' ') && (ch != '\t') && (ch != '\n' ) && (ch != '\r' ) )
-		{
-			break;
-		}
+        ch = _str[end];
+        if ( ( ch != ' ' ) && ( ch != '\t' ) && ( ch != '\n' ) && ( ch != '\r' ) )
+        {
+            break;
+        }
     }
 
-	if( end >= start )
-	{
-        return( _str.substr( start, (end-start)+1 ) );
-	}
+    if ( end >= start )
+    {
+        return ( _str.substr ( start, ( end-start ) +1 ) );
+    }
 
-	string empty;
-	return( empty );
+    string empty;
+    return ( empty );
 }
 
 
@@ -176,23 +176,23 @@ string xpl::StringTrim
 ***************************************************************************/
 
 string xpl::StringToLower
-( 
-	string const& _str 
+(
+    string const& _str
 )
 {
-	string outStr = _str;
-	uint32 index = 0;
-	char ch;
-    while( ch = outStr[index] )
+    string outStr = _str;
+    uint32 index = 0;
+    char ch;
+    while ( ch = outStr[index] )
     {
-		if( (ch >= 'A') && (ch <= 'Z') )
-		{
-			outStr[index] = ch + ('a'-'A');
-		}
+        if ( ( ch >= 'A' ) && ( ch <= 'Z' ) )
+        {
+            outStr[index] = ch + ( 'a'-'A' );
+        }
         ++index;
     }
 
-	return( outStr );
+    return ( outStr );
 }
 
 
@@ -203,23 +203,23 @@ string xpl::StringToLower
 ***************************************************************************/
 
 string xpl::StringToUpper
-( 
-	string const& _str 
+(
+    string const& _str
 )
 {
-	string outStr = _str;
-	uint32 index = 0;
-	char ch;
-    while( ch = outStr[index] )
+    string outStr = _str;
+    uint32 index = 0;
+    char ch;
+    while ( ch = outStr[index] )
     {
-		if( (ch >= 'a') && (ch <= 'z') )
-		{
-			outStr[index] = ch - ('a'-'A');
-		}
+        if ( ( ch >= 'a' ) && ( ch <= 'z' ) )
+        {
+            outStr[index] = ch - ( 'a'-'A' );
+        }
         ++index;
     }
 
-	return( outStr );
+    return ( outStr );
 }
 
 
@@ -230,45 +230,45 @@ string xpl::StringToUpper
 ***************************************************************************/
 
 string	xpl::StringFromFloat
-( 
-	float _f, 
-	uint32 _places, 
-	bool _bTrim /* = false */
+(
+    float _f,
+    uint32 _places,
+    bool _bTrim /* = false */
 )
 {
-	if( _places > 10 )
-	{
-		_places = 10;
-	}
+    if ( _places > 10 )
+    {
+        _places = 10;
+    }
 
-	char format[8];
-	sprintf( format, "%%.%df", _places );
+    char format[8];
+    sprintf ( format, "%%.%df", _places );
 
-	char str[64];
-	sprintf( str, format, _f );
+    char str[64];
+    sprintf ( str, format, _f );
 
-	if( _places && _bTrim )
-	{
-		int pos = (int)strlen( str );
-		while( pos-- )
-		{
-			if( str[pos] == '0' )
-			{
-				str[pos] = 0;
-			}
-			else if( str[pos] == '.' )
-			{
-				str[pos] = 0;
-				break;
-			}
-			else
-			{
-				break;
-			}
-		}
-	}
+    if ( _places && _bTrim )
+    {
+        int pos = ( int ) strlen ( str );
+        while ( pos-- )
+        {
+            if ( str[pos] == '0' )
+            {
+                str[pos] = 0;
+            }
+            else if ( str[pos] == '.' )
+            {
+                str[pos] = 0;
+                break;
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
 
-	return string( str );
+    return string ( str );
 }
 
 
@@ -281,13 +281,13 @@ string	xpl::StringFromFloat
 ***************************************************************************/
 
 UnicodeString::UnicodeString
-( 
-	char const* _asciiString 
+(
+    char const* _asciiString
 )
 {
-	uint32 length = MultiByteToWideChar( CP_ACP, MB_PRECOMPOSED, _asciiString, -1, NULL, 0 ); 
-	m_pBuffer = new uint16[length+1];
-	MultiByteToWideChar( CP_ACP, MB_PRECOMPOSED, _asciiString, -1, m_pBuffer, length ); 
+    uint32 length = MultiByteToWideChar ( CP_ACP, MB_PRECOMPOSED, _asciiString, -1, NULL, 0 );
+    m_pBuffer = new uint16[length+1];
+    MultiByteToWideChar ( CP_ACP, MB_PRECOMPOSED, _asciiString, -1, m_pBuffer, length );
 }
 
 #endif // #ifdef UNICODE

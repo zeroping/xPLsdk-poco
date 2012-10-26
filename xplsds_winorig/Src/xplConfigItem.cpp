@@ -44,15 +44,15 @@ using namespace xpl;
 ****																	****
 ***************************************************************************/
 
-bool xplConfigItem::AddValue( string const& _value )
+bool xplConfigItem::AddValue ( string const& _value )
 {
-	if( GetNumValues() >= m_maxValues )
-	{
-		return false;
-	}
+    if ( GetNumValues() >= m_maxValues )
+    {
+        return false;
+    }
 
-	xplMsgItem::AddValue( _value );
-	return true;
+    xplMsgItem::AddValue ( _value );
+    return true;
 }
 
 
@@ -64,55 +64,55 @@ bool xplConfigItem::AddValue( string const& _value )
 ****																	****
 ***************************************************************************/
 
-bool xplConfigItem::RegistryLoad( HKEY& _hKey )
+bool xplConfigItem::RegistryLoad ( HKEY& _hKey )
 {
-	// Remove the existing values
-	ClearValues();
+    // Remove the existing values
+    ClearValues();
 
-	// Get the size of the buffer required
-	DWORD bufferSize;
+    // Get the size of the buffer required
+    DWORD bufferSize;
 #ifdef UNICODE
-	UnicodeString unicodeStr = UnicodeString( GetName().c_str() );
-	LONG res = RegQueryValueEx( _hKey, unicodeStr.c_str(), NULL, NULL, NULL, &bufferSize );
+    UnicodeString unicodeStr = UnicodeString ( GetName().c_str() );
+    LONG res = RegQueryValueEx ( _hKey, unicodeStr.c_str(), NULL, NULL, NULL, &bufferSize );
 #else
-	LONG res = RegQueryValueEx( _hKey, GetName().c_str(), NULL, NULL, NULL, &bufferSize );
+    LONG res = RegQueryValueEx ( _hKey, GetName().c_str(), NULL, NULL, NULL, &bufferSize );
 #endif
 
-	if( ERROR_SUCCESS != res )
-	{
-		return false;
-	}
+    if ( ERROR_SUCCESS != res )
+    {
+        return false;
+    }
 
-	// Read the registry data into a buffer
-	int8* pBuffer = new int8[bufferSize];
-	DWORD type;
+    // Read the registry data into a buffer
+    int8* pBuffer = new int8[bufferSize];
+    DWORD type;
 #ifdef UNICODE
-	res = RegQueryValueEx( _hKey, unicodeStr.c_str(), NULL, &type, (uint8*)pBuffer, &bufferSize );
-	int8* pNewBuffer = new int8[bufferSize];
-	WideCharToMultiByte( CP_ACP, 0, (WCHAR*)pBuffer, -1, pNewBuffer, bufferSize, NULL, NULL );
-	delete [] pBuffer;
-	pBuffer = pNewBuffer;
+    res = RegQueryValueEx ( _hKey, unicodeStr.c_str(), NULL, &type, ( uint8* ) pBuffer, &bufferSize );
+    int8* pNewBuffer = new int8[bufferSize];
+    WideCharToMultiByte ( CP_ACP, 0, ( WCHAR* ) pBuffer, -1, pNewBuffer, bufferSize, NULL, NULL );
+    delete [] pBuffer;
+    pBuffer = pNewBuffer;
 #else
-	res = RegQueryValueEx( _hKey, GetName().c_str(), NULL, &type, (uint8*)pBuffer, &bufferSize );
+    res = RegQueryValueEx ( _hKey, GetName().c_str(), NULL, &type, ( uint8* ) pBuffer, &bufferSize );
 #endif
-	if( ( ERROR_SUCCESS != res ) || ( REG_MULTI_SZ != type ) )
-	{
-		return false;
-	}
+    if ( ( ERROR_SUCCESS != res ) || ( REG_MULTI_SZ != type ) )
+    {
+        return false;
+    }
 
-	// Read the values from the buffer
-	int8* pPos = pBuffer;
-	while( *pPos )
-	{
-		string value = string( (int8*)pPos );
-		AddValue( value );
+    // Read the values from the buffer
+    int8* pPos = pBuffer;
+    while ( *pPos )
+    {
+        string value = string ( ( int8* ) pPos );
+        AddValue ( value );
 
-		pPos += (value.size()+1);
-	}
+        pPos += ( value.size() +1 );
+    }
 
-	// Clean up
-	delete [] pBuffer;
-	return true;
+    // Clean up
+    delete [] pBuffer;
+    return true;
 }
 
 
@@ -124,48 +124,48 @@ bool xplConfigItem::RegistryLoad( HKEY& _hKey )
 ****																	****
 ***************************************************************************/
 
-bool xplConfigItem::RegistrySave( HKEY& _hKey )const
+bool xplConfigItem::RegistrySave ( HKEY& _hKey ) const
 {
-	// Values must be concatenated into a single buffer
+    // Values must be concatenated into a single buffer
 
-	// First calculate the size of buffer 
-	// required to hold all the values
-	uint32 total = 0;
-	uint32 i;
-	for( i=0; i<GetNumValues(); ++i )
-	{
-		total += (uint32)(GetValue(i).size() + 1);
-	}
+    // First calculate the size of buffer
+    // required to hold all the values
+    uint32 total = 0;
+    uint32 i;
+    for ( i=0; i<GetNumValues(); ++i )
+    {
+        total += ( uint32 ) ( GetValue ( i ).size() + 1 );
+    }
 
-	// Array is terminated by an empty string
-	total += 1; 
+    // Array is terminated by an empty string
+    total += 1;
 
-	// Now build the buffer
-	int8* pBuffer = new int8[total];
-	int8* pPos = pBuffer;
+    // Now build the buffer
+    int8* pBuffer = new int8[total];
+    int8* pPos = pBuffer;
 
-	for( i=0; i<GetNumValues(); ++i )
-	{
-		string const& value = GetValue(i);
-		strcpy( pPos, value.c_str() );
-		pPos += (value.size() + 1);
-	}
-	*pPos = 0;
+    for ( i=0; i<GetNumValues(); ++i )
+    {
+        string const& value = GetValue ( i );
+        strcpy ( pPos, value.c_str() );
+        pPos += ( value.size() + 1 );
+    }
+    *pPos = 0;
 
-	// Set the registry value
+    // Set the registry value
 #ifdef UNICODE
-	UnicodeString unicodeStr = UnicodeString( GetName().c_str() );
-	WCHAR* pWideBuffer = new WCHAR[total];
-	MultiByteToWideChar( CP_ACP, MB_PRECOMPOSED, pBuffer, total, pWideBuffer, total<<1 ); 
-	RegSetValueEx( _hKey, unicodeStr.c_str(), 0, REG_MULTI_SZ, (uint8*)pWideBuffer, total<<1 );
-	delete [] pWideBuffer;
+    UnicodeString unicodeStr = UnicodeString ( GetName().c_str() );
+    WCHAR* pWideBuffer = new WCHAR[total];
+    MultiByteToWideChar ( CP_ACP, MB_PRECOMPOSED, pBuffer, total, pWideBuffer, total<<1 );
+    RegSetValueEx ( _hKey, unicodeStr.c_str(), 0, REG_MULTI_SZ, ( uint8* ) pWideBuffer, total<<1 );
+    delete [] pWideBuffer;
 #else
-	RegSetValueEx( _hKey, GetName().c_str(), 0, REG_MULTI_SZ, (uint8*)pBuffer, total );
+    RegSetValueEx ( _hKey, GetName().c_str(), 0, REG_MULTI_SZ, ( uint8* ) pBuffer, total );
 #endif
 
-	// Clean up
-	delete [] pBuffer;
-	return true;
+    // Clean up
+    delete [] pBuffer;
+    return true;
 }
 
 
@@ -178,32 +178,32 @@ bool xplConfigItem::RegistrySave( HKEY& _hKey )const
 ****																	****
 ***************************************************************************/
 
-bool xplConfigItem::FileLoad( HANDLE& _hFile )
+bool xplConfigItem::FileLoad ( HANDLE& _hFile )
 {
-	// Remove the existing values
-	ClearValues();
+    // Remove the existing values
+    ClearValues();
 
-	// Get the size of the buffer required
-	DWORD bufferSize, bytesRead;
-	ReadFile( _hFile, &bufferSize, sizeof(bufferSize), &bytesRead, NULL );
+    // Get the size of the buffer required
+    DWORD bufferSize, bytesRead;
+    ReadFile ( _hFile, &bufferSize, sizeof ( bufferSize ), &bytesRead, NULL );
 
-	// Read the config data into a buffer
-	int8* pBuffer = new int8[bufferSize];
-	ReadFile( _hFile, pBuffer, bufferSize, &bytesRead, NULL );
+    // Read the config data into a buffer
+    int8* pBuffer = new int8[bufferSize];
+    ReadFile ( _hFile, pBuffer, bufferSize, &bytesRead, NULL );
 
-	// Read the values from the buffer
-	int8* pPos = pBuffer;
-	while( *pPos )
-	{
-		string value = string( pPos );
-		AddValue( value );
+    // Read the values from the buffer
+    int8* pPos = pBuffer;
+    while ( *pPos )
+    {
+        string value = string ( pPos );
+        AddValue ( value );
 
-		pPos += (value.size()+1);
-	}
+        pPos += ( value.size() +1 );
+    }
 
-	// Clean up
-	delete [] pBuffer;
-	return true;
+    // Clean up
+    delete [] pBuffer;
+    return true;
 }
 
 
@@ -216,44 +216,44 @@ bool xplConfigItem::FileLoad( HANDLE& _hFile )
 ****																	****
 ***************************************************************************/
 
-bool xplConfigItem::FileSave( HANDLE& _hFile )const
+bool xplConfigItem::FileSave ( HANDLE& _hFile ) const
 {
-	// Values must be concatenated into a single buffer
+    // Values must be concatenated into a single buffer
 
-	// First calculate the size of buffer 
-	// required to hold all the values
-	uint32 total = 0;
-	uint32 i;
-	for( i=0; i<GetNumValues(); ++i )
-	{
-		total += (uint32)(GetValue(i).size() + 1);
-	}
+    // First calculate the size of buffer
+    // required to hold all the values
+    uint32 total = 0;
+    uint32 i;
+    for ( i=0; i<GetNumValues(); ++i )
+    {
+        total += ( uint32 ) ( GetValue ( i ).size() + 1 );
+    }
 
-	// Array is terminated by an empty string
-	total += 1; 
+    // Array is terminated by an empty string
+    total += 1;
 
-	// Now build the buffer
-	int8* pBuffer = new int8[total];
-	int8* pPos = pBuffer;
+    // Now build the buffer
+    int8* pBuffer = new int8[total];
+    int8* pPos = pBuffer;
 
-	for( i=0; i<GetNumValues(); ++i )
-	{
-		string const& value = GetValue(i);
-		strcpy( pPos, value.c_str() );
-		pPos += (value.size() + 1);
-	}
-	*pPos = 0;
+    for ( i=0; i<GetNumValues(); ++i )
+    {
+        string const& value = GetValue ( i );
+        strcpy ( pPos, value.c_str() );
+        pPos += ( value.size() + 1 );
+    }
+    *pPos = 0;
 
-	// Write the size of the buffer
-	DWORD bytesWritten;
-	WriteFile( _hFile, &total, sizeof(total), &bytesWritten, NULL );
+    // Write the size of the buffer
+    DWORD bytesWritten;
+    WriteFile ( _hFile, &total, sizeof ( total ), &bytesWritten, NULL );
 
-	// Write the buffer
-	WriteFile( _hFile, pBuffer, total, &bytesWritten, NULL );
+    // Write the buffer
+    WriteFile ( _hFile, pBuffer, total, &bytesWritten, NULL );
 
-	// Clean up
-	delete [] pBuffer;
-	return true;
+    // Clean up
+    delete [] pBuffer;
+    return true;
 }
 
 

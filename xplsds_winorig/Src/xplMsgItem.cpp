@@ -44,9 +44,9 @@ using namespace xpl;
 ****																	****
 ***************************************************************************/
 
-xplMsgItem::xplMsgItem( string const& _name )
+xplMsgItem::xplMsgItem ( string const& _name )
 {
-	m_name = StringToLower( _name );
+    m_name = StringToLower ( _name );
 }
 
 
@@ -57,36 +57,36 @@ xplMsgItem::xplMsgItem( string const& _name )
 ***************************************************************************/
 
 bool xplMsgItem::AddValue
-( 
-	string const& _value, 
-	char const _delimiter
+(
+    string const& _value,
+    char const _delimiter
 )
 {
-	// Add the value, ensuring that it does not exceed the 128 character
-	// maximum length.  If the string is longer, it must be broken down
-	// and multiple name=value pairs created.
-	while( 1 )
-	{
-		string remainder = _value;
-		if( remainder.size() <= 128 )
-		{
-			m_values.push_back( remainder );
-			break;
-		}
-	
-		// remainder needs to be split into multiple shorter strings
-		int breakpos = (int)remainder.rfind( _delimiter, 128 );
-		if( string::npos == breakpos )
-		{
-			// Failed to break the string down.
-			return false;
-		}
+    // Add the value, ensuring that it does not exceed the 128 character
+    // maximum length.  If the string is longer, it must be broken down
+    // and multiple name=value pairs created.
+    while ( 1 )
+    {
+        string remainder = _value;
+        if ( remainder.size() <= 128 )
+        {
+            m_values.push_back ( remainder );
+            break;
+        }
 
-		m_values.push_back( remainder.substr( 0, breakpos ) );
-		remainder = remainder.substr( breakpos+1 );
-	}
-	
-	return true;
+        // remainder needs to be split into multiple shorter strings
+        int breakpos = ( int ) remainder.rfind ( _delimiter, 128 );
+        if ( string::npos == breakpos )
+        {
+            // Failed to break the string down.
+            return false;
+        }
+
+        m_values.push_back ( remainder.substr ( 0, breakpos ) );
+        remainder = remainder.substr ( breakpos+1 );
+    }
+
+    return true;
 }
 
 
@@ -96,17 +96,17 @@ bool xplMsgItem::AddValue
 ****																	****
 ***************************************************************************/
 
-bool xplMsgItem::SetValue( string const& _value, uint32 const _index /* = 0 */ )
+bool xplMsgItem::SetValue ( string const& _value, uint32 const _index /* = 0 */ )
 {
-	// Make sure there is a value at this index
-	if( _index >= GetNumValues() )
-	{
-		assert( 0 );
-		return false;
-	}
+    // Make sure there is a value at this index
+    if ( _index >= GetNumValues() )
+    {
+        assert ( 0 );
+        return false;
+    }
 
-	m_values[_index] = _value;
-	return true;
+    m_values[_index] = _value;
+    return true;
 }
 
 
@@ -117,15 +117,15 @@ bool xplMsgItem::SetValue( string const& _value, uint32 const _index /* = 0 */ )
 ***************************************************************************/
 
 string const xplMsgItem::GetValue
-( 
-	uint32 const _index /* =0 */ 
-)const
+(
+    uint32 const _index /* =0 */
+) const
 {
-	if( _index >= m_values.size() )
-	{
-		return( string("") );
-	}
+    if ( _index >= m_values.size() )
+    {
+        return ( string ( "" ) );
+    }
 
-	return( m_values[_index] );
+    return ( m_values[_index] );
 }
 

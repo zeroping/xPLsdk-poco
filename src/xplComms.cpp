@@ -49,8 +49,8 @@ uint32 const xplComms::c_msgBufferSize = 2048;
 ***************************************************************************/
 /*
 void xplComms::Destroy
-( 
-	xplComms* _pComms 
+(
+	xplComms* _pComms
 )
 {
 //     cout << "xplComms::Destroy in thread " << Thread::currentTid() << " \n";
@@ -74,11 +74,11 @@ void xplComms::Destroy
 ****																	****
 ***************************************************************************/
 
-xplComms::xplComms():
-	m_bConnected( false )
+xplComms::xplComms() :
+    m_bConnected ( false )
 {
-	// Create a buffer for temporary storage of received messages
-	m_pMsgBuffer = new int8[c_msgBufferSize];
+    // Create a buffer for temporary storage of received messages
+    m_pMsgBuffer = new int8[c_msgBufferSize];
 }
 
 
@@ -90,8 +90,8 @@ xplComms::xplComms():
 
 xplComms::~xplComms()
 {
-	// Delete the message buffer
-	delete [] m_pMsgBuffer;
+    // Delete the message buffer
+    delete [] m_pMsgBuffer;
 }
 
 
@@ -103,8 +103,8 @@ xplComms::~xplComms()
 
 bool xplComms::Connect()
 {
-	m_bConnected = true;
-	return true;
+    m_bConnected = true;
+    return true;
 }
 
 
@@ -116,7 +116,7 @@ bool xplComms::Connect()
 
 void xplComms::Disconnect()
 {
-	m_bConnected = false;
+    m_bConnected = false;
 }
 
 

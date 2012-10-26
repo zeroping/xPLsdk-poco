@@ -56,65 +56,83 @@ SensorManager* SensorManager::s_pInstance = NULL;
 class Sensor
 {
 public:
-	enum
-	{
-		Type_Temperature = 0,
-		Type_Humidity,
-		Type_Pressure,
-		Type_RFU011,
-		Type_TemperaturePlusHalf,
-		Type_RFU101,
-		Type_RFU110,
-		Type_RFU111,
-		Type_Generic
-	};
+    enum
+    {
+        Type_Temperature = 0,
+        Type_Humidity,
+        Type_Pressure,
+        Type_RFU011,
+        Type_TemperaturePlusHalf,
+        Type_RFU101,
+        Type_RFU110,
+        Type_RFU111,
+        Type_Generic
+    };
 
-	Sensor( uint8 const _unitCode, string const& _name, uint8 const _sensorType, float const _value ):
-		m_unitCode( _unitCode ),
-		m_name( _name ),
-		m_type( _sensorType ),
-		m_current( _value ),
-		m_high( _value ),
-		m_low( _value )
-	{
-		// If no name is provided, create one
-		if( m_name.empty() )
-		{
-			char str[16];
-			sprintf( str, "Unit_%d", (int)m_unitCode );
-			m_name = str;
-		}
-	}
-		
-	~Sensor(){}
+    Sensor ( uint8 const _unitCode, string const& _name, uint8 const _sensorType, float const _value ) :
+        m_unitCode ( _unitCode ),
+        m_name ( _name ),
+        m_type ( _sensorType ),
+        m_current ( _value ),
+        m_high ( _value ),
+        m_low ( _value )
+    {
+        // If no name is provided, create one
+        if ( m_name.empty() )
+        {
+            char str[16];
+            sprintf ( str, "Unit_%d", ( int ) m_unitCode );
+            m_name = str;
+        }
+    }
 
-	void SetCurrent( float const _current )
-	{
-		m_current = _current;
-		if( _current > m_high )
-		{
-			m_high = _current;
-		}
-		if( _current < m_low )
-		{
-			m_low = _current;
-		}
-	}
+    ~Sensor() {}
 
-	uint8 GetUnitCode()const{ return m_unitCode; }
-	uint8 GetType()const{ return m_type; }
-	string GetName()const{ return m_name; }
-	float GetCurrent()const{ return m_current; }
-	float GetHigh()const{ return m_high; }
-	float GetLow()const{ return m_low; }
+    void SetCurrent ( float const _current )
+    {
+        m_current = _current;
+        if ( _current > m_high )
+        {
+            m_high = _current;
+        }
+        if ( _current < m_low )
+        {
+            m_low = _current;
+        }
+    }
+
+    uint8 GetUnitCode() const
+    {
+        return m_unitCode;
+    }
+    uint8 GetType() const
+    {
+        return m_type;
+    }
+    string GetName() const
+    {
+        return m_name;
+    }
+    float GetCurrent() const
+    {
+        return m_current;
+    }
+    float GetHigh() const
+    {
+        return m_high;
+    }
+    float GetLow() const
+    {
+        return m_low;
+    }
 
 private:
-	string	m_name;
-	uint8	m_unitCode;
-	uint8	m_type;
-	float	m_current;
-	float	m_high;
-	float	m_low;
+    string	m_name;
+    uint8	m_unitCode;
+    uint8	m_type;
+    float	m_current;
+    float	m_high;
+    float	m_low;
 };
 
 
@@ -126,7 +144,7 @@ private:
 
 SensorManager::SensorManager()
 {
-	LoadSensors();
+    LoadSensors();
 }
 
 
@@ -138,16 +156,16 @@ SensorManager::SensorManager()
 
 SensorManager::~SensorManager()
 {
-	// Save the sensor map
-	SaveSensors();
+    // Save the sensor map
+    SaveSensors();
 
-	// Clear the sensor map
-	map<uint8,Sensor*>::iterator iter = m_sensorMap.begin();
-	while( iter != m_sensorMap.end() )
-	{
-		delete iter->second;
-		iter = m_sensorMap.erase( iter );
-	}
+    // Clear the sensor map
+    map<uint8,Sensor*>::iterator iter = m_sensorMap.begin();
+    while ( iter != m_sensorMap.end() )
+    {
+        delete iter->second;
+        iter = m_sensorMap.erase ( iter );
+    }
 }
 
 
@@ -159,169 +177,169 @@ SensorManager::~SensorManager()
 
 xplMsg* SensorManager::ProcessRF
 (
-	uint8* _rf,
-	string const& _msgSource
+    uint8* _rf,
+    string const& _msgSource
 )
 {
-	if( ( _rf[0] ^ _rf[1] ) != 0xf0 )
-	{
-		// Not a sensor message
-		return NULL;
-	}
+    if ( ( _rf[0] ^ _rf[1] ) != 0xf0 )
+    {
+        // Not a sensor message
+        return NULL;
+    }
 
-	uint8 parity = ( (_rf[0]>>4) 
-				 + (_rf[0]&0x0f) 
-				 + (_rf[1]>>4) 
-				 + (_rf[1]&0x0f) 
-				 + (_rf[2]>>4) 
-				 + (_rf[2]&0x0f) 
-				 + (_rf[3]>>4) ) & 0x0f;
+    uint8 parity = ( ( _rf[0]>>4 )
+                     + ( _rf[0]&0x0f )
+                     + ( _rf[1]>>4 )
+                     + ( _rf[1]&0x0f )
+                     + ( _rf[2]>>4 )
+                     + ( _rf[2]&0x0f )
+                     + ( _rf[3]>>4 ) ) & 0x0f;
 
-	if( parity != ((~_rf[3]) & 0x0f) )
-	{
-		// Parity error
-		return NULL;
-	}
+    if ( parity != ( ( ~_rf[3] ) & 0x0f ) )
+    {
+        // Parity error
+        return NULL;
+    }
 
-	if( _rf[3] & 0x10 )
-	{
-		// Message is an info or error code
-		// Construct a log.basic message
-		xplMsg* pMsg = xplMsg::Create( xplMsg::c_xplTrig, _msgSource , "*", "log", "basic" );
-		string type = "err";
-		string code = "";
+    if ( _rf[3] & 0x10 )
+    {
+        // Message is an info or error code
+        // Construct a log.basic message
+        xplMsg* pMsg = xplMsg::Create ( xplMsg::c_xplTrig, _msgSource , "*", "log", "basic" );
+        string type = "err";
+        string code = "";
 
-		string errorStr = "RF Sensor ";
-		map<uint8,Sensor*>::iterator iter = m_sensorMap.find( _rf[0] );
-		if( iter == m_sensorMap.end() )
-		{
-			char str[16];
-			sprintf( str, "Unit_%d", (int)_rf[0] );
-			errorStr += str;
-		}
-		else
-		{
-			Sensor* pSensor = iter->second;
-			errorStr += pSensor->GetName();
-		}
+        string errorStr = "RF Sensor ";
+        map<uint8,Sensor*>::iterator iter = m_sensorMap.find ( _rf[0] );
+        if ( iter == m_sensorMap.end() )
+        {
+            char str[16];
+            sprintf ( str, "Unit_%d", ( int ) _rf[0] );
+            errorStr += str;
+        }
+        else
+        {
+            Sensor* pSensor = iter->second;
+            errorStr += pSensor->GetName();
+        }
 
-		switch( _rf[2] )
-		{
-			case 0x01:
-			{
-				errorStr += ": Sensor addresses incremented";
-				code = "1";
-				type = "wrn";
-				break;
-			}
-			case 0x02:
-			{
-				errorStr += ": Low voltage detected";
-				code = "2";
-				type = "wrn";
-				break;
-			}
-			case 0x81:
-			{
-				errorStr += ": No 1-Wire device connected";
-				code = "129";
-				break;
-			}
-			case 0x82:
-			{
-				errorStr += ": 1-Wire ROM CRC error";
-				code = "130";
-				break;
-			}
-			case 0x83:
-			{
-				errorStr += ": 1-Wire device connected is not a DS1820";
-				code = "131";
-				break;
-			}
-			case 0x84:
-			{
-				errorStr += ": No end of read signal received from 1-Wire device";
-				code = "132";
-				break;
-			}
-			case 0x85:
-			{
-				errorStr += ": 1-Wire scratchpad CRC error";
-				code = "133";
-				break;
-			}
-			default:
-			{
-				errorStr += ": Undefined error";
-				char str[16];
-				sprintf( str, "%d", (int)_rf[2] );
-				code = str;
-				break;
-			}
-		}
-	
-		pMsg->AddValue( "type", type );
-		pMsg->AddValue( "text", errorStr );
-		pMsg->AddValue( "code", code );
-		return( pMsg );
-	}
+        switch ( _rf[2] )
+        {
+        case 0x01:
+        {
+            errorStr += ": Sensor addresses incremented";
+            code = "1";
+            type = "wrn";
+            break;
+        }
+        case 0x02:
+        {
+            errorStr += ": Low voltage detected";
+            code = "2";
+            type = "wrn";
+            break;
+        }
+        case 0x81:
+        {
+            errorStr += ": No 1-Wire device connected";
+            code = "129";
+            break;
+        }
+        case 0x82:
+        {
+            errorStr += ": 1-Wire ROM CRC error";
+            code = "130";
+            break;
+        }
+        case 0x83:
+        {
+            errorStr += ": 1-Wire device connected is not a DS1820";
+            code = "131";
+            break;
+        }
+        case 0x84:
+        {
+            errorStr += ": No end of read signal received from 1-Wire device";
+            code = "132";
+            break;
+        }
+        case 0x85:
+        {
+            errorStr += ": 1-Wire scratchpad CRC error";
+            code = "133";
+            break;
+        }
+        default:
+        {
+            errorStr += ": Undefined error";
+            char str[16];
+            sprintf ( str, "%d", ( int ) _rf[2] );
+            code = str;
+            break;
+        }
+        }
+
+        pMsg->AddValue ( "type", type );
+        pMsg->AddValue ( "text", errorStr );
+        pMsg->AddValue ( "code", code );
+        return ( pMsg );
+    }
 
 
-	// Message is a measurement
-	string typeStr = "generic";
-	float fCurrent = (float)_rf[2];
-	uint8 sensorType = _rf[3] >> 5;
-	if( Sensor::Type_Temperature == sensorType )
-	{
-		typeStr = "temp";
-	}
-	if( Sensor::Type_TemperaturePlusHalf == sensorType )
-	{
-		fCurrent += 0.5f;
-		sensorType = Sensor::Type_Temperature;
-		typeStr = "temp";
-	}
-	else if( Sensor::Type_Humidity == sensorType )
-	{
-		typeStr = "humidity";
-	}
-	else if( Sensor::Type_Pressure == sensorType )
-	{
-		typeStr = "pressure";
-	}
+    // Message is a measurement
+    string typeStr = "generic";
+    float fCurrent = ( float ) _rf[2];
+    uint8 sensorType = _rf[3] >> 5;
+    if ( Sensor::Type_Temperature == sensorType )
+    {
+        typeStr = "temp";
+    }
+    if ( Sensor::Type_TemperaturePlusHalf == sensorType )
+    {
+        fCurrent += 0.5f;
+        sensorType = Sensor::Type_Temperature;
+        typeStr = "temp";
+    }
+    else if ( Sensor::Type_Humidity == sensorType )
+    {
+        typeStr = "humidity";
+    }
+    else if ( Sensor::Type_Pressure == sensorType )
+    {
+        typeStr = "pressure";
+    }
 
-	// Get the sensor details
-	Sensor* pSensor = NULL;
-	map<uint8,Sensor*>::iterator iter = m_sensorMap.find( _rf[0] );
-	if( iter == m_sensorMap.end() )
-	{
-		// No entry for this sensor yet, so create a new one
-		pSensor = new Sensor( _rf[0], "", sensorType, fCurrent );
-		m_sensorMap[_rf[0]] = pSensor;			
-	}
-	else
-	{
-		pSensor = iter->second;
-		pSensor->SetCurrent( fCurrent );
-	}
+    // Get the sensor details
+    Sensor* pSensor = NULL;
+    map<uint8,Sensor*>::iterator iter = m_sensorMap.find ( _rf[0] );
+    if ( iter == m_sensorMap.end() )
+    {
+        // No entry for this sensor yet, so create a new one
+        pSensor = new Sensor ( _rf[0], "", sensorType, fCurrent );
+        m_sensorMap[_rf[0]] = pSensor;
+    }
+    else
+    {
+        pSensor = iter->second;
+        pSensor->SetCurrent ( fCurrent );
+    }
 
-	// Send sensor.basic
-	xplMsg* pMsg = xplMsg::Create( xplMsg::c_xplTrig, _msgSource , "*", "sensor", "basic" );
-	pMsg->AddValue( "device", pSensor->GetName()  );
-	pMsg->AddValue( "type", typeStr );
+    // Send sensor.basic
+    xplMsg* pMsg = xplMsg::Create ( xplMsg::c_xplTrig, _msgSource , "*", "sensor", "basic" );
+    pMsg->AddValue ( "device", pSensor->GetName() );
+    pMsg->AddValue ( "type", typeStr );
 
-	char valueStr[32];
-	sprintf( valueStr, "%.1f", pSensor->GetCurrent() );
-	pMsg->AddValue( "current", valueStr );
+    char valueStr[32];
+    sprintf ( valueStr, "%.1f", pSensor->GetCurrent() );
+    pMsg->AddValue ( "current", valueStr );
 
-	sprintf( valueStr, "%.1f", pSensor->GetLow() );
-	pMsg->AddValue( "lowest", valueStr );
+    sprintf ( valueStr, "%.1f", pSensor->GetLow() );
+    pMsg->AddValue ( "lowest", valueStr );
 
-	sprintf( valueStr, "%.1f", pSensor->GetHigh() );
-	pMsg->AddValue( "highest", valueStr );
+    sprintf ( valueStr, "%.1f", pSensor->GetHigh() );
+    pMsg->AddValue ( "highest", valueStr );
 
-	return pMsg;
+    return pMsg;
 }
 
 
@@ -333,128 +351,128 @@ xplMsg* SensorManager::ProcessRF
 
 bool SensorManager::LoadSensors()
 {
-	HRESULT hr;
-	IXMLDOMDocument* pXMLDoc = NULL;
-	bool retVal = false;
+    HRESULT hr;
+    IXMLDOMDocument* pXMLDoc = NULL;
+    bool retVal = false;
 
-	while( 1 )
-	{
-		CoInitialize( NULL ); 
-	
-		if( S_OK != CoCreateInstance( CLSID_DOMDocument30, NULL, CLSCTX_INPROC_SERVER, IID_IXMLDOMDocument, (void**)&pXMLDoc ) )
-		{
-			break;
-		}
+    while ( 1 )
+    {
+        CoInitialize ( NULL );
 
-		CComVariant filename;
-		VARIANT_BOOL bSuccess;
-		char path[MAX_PATH];
-		::GetCurrentDirectory( MAX_PATH, path );
-		strcat( path, "\\sensors.xml" );
-		filename = path;
-		
-		if( S_OK != pXMLDoc->load( filename, &bSuccess ) )
-		{
-			break;
-		}
+        if ( S_OK != CoCreateInstance ( CLSID_DOMDocument30, NULL, CLSCTX_INPROC_SERVER, IID_IXMLDOMDocument, ( void** ) &pXMLDoc ) )
+        {
+            break;
+        }
 
-		IXMLDOMElement* pXMLElement;
-		hr = pXMLDoc->get_documentElement( &pXMLElement );
+        CComVariant filename;
+        VARIANT_BOOL bSuccess;
+        char path[MAX_PATH];
+        ::GetCurrentDirectory ( MAX_PATH, path );
+        strcat ( path, "\\sensors.xml" );
+        filename = path;
 
-		IXMLDOMNode* pNode;
-		pXMLElement->get_firstChild( &pNode );
+        if ( S_OK != pXMLDoc->load ( filename, &bSuccess ) )
+        {
+            break;
+        }
 
-		while( pNode )
-		{
-			string name;
-			uint8 unitCode = 0;
-			uint8 sensorType = Sensor::Type_Generic;
-			float low = 0.0f;
-			float high = 0.0f;
+        IXMLDOMElement* pXMLElement;
+        hr = pXMLDoc->get_documentElement ( &pXMLElement );
 
-			// Read the entry
-			IXMLDOMNode* pItem;
-			if( S_OK == pNode->selectSingleNode( L"UnitCode", &pItem ) )
-			{
-				CComBSTR text;
-				pItem->get_text( &text );
-				unitCode = (uint8)wcstol( text, NULL, 0 );
-				pItem->Release();
-			}
+        IXMLDOMNode* pNode;
+        pXMLElement->get_firstChild ( &pNode );
 
-			if( S_OK == pNode->selectSingleNode( L"Name", &pItem ) )
-			{
-				CComBSTR text;
-				pItem->get_text( &text );
-				int length = WideCharToMultiByte( CP_UTF8, 0, text, -1, NULL, 0, NULL, NULL ); 
-				char* str = new char[length+1];
-				WideCharToMultiByte( CP_UTF8, 0, text, -1, str, length, NULL, NULL ); 
-				name = str;
-				delete [] str;
-				pItem->Release();
-			}
+        while ( pNode )
+        {
+            string name;
+            uint8 unitCode = 0;
+            uint8 sensorType = Sensor::Type_Generic;
+            float low = 0.0f;
+            float high = 0.0f;
 
-			if( S_OK == pNode->selectSingleNode( L"Type", &pItem ) )
-			{
-				CComBSTR text;
-				pItem->get_text( &text );
+            // Read the entry
+            IXMLDOMNode* pItem;
+            if ( S_OK == pNode->selectSingleNode ( L"UnitCode", &pItem ) )
+            {
+                CComBSTR text;
+                pItem->get_text ( &text );
+                unitCode = ( uint8 ) wcstol ( text, NULL, 0 );
+                pItem->Release();
+            }
 
-				if( text == L"Temperature" )
-				{
-					sensorType = Sensor::Type_Temperature;
-				}
-				else if( text == L"Humidity" )
-				{
-					sensorType = Sensor::Type_Humidity;
-				}
-				else if( text == L"Pressure" )
-				{
-					sensorType = Sensor::Type_Pressure;
-				}
-				pItem->Release();
-			}
+            if ( S_OK == pNode->selectSingleNode ( L"Name", &pItem ) )
+            {
+                CComBSTR text;
+                pItem->get_text ( &text );
+                int length = WideCharToMultiByte ( CP_UTF8, 0, text, -1, NULL, 0, NULL, NULL );
+                char* str = new char[length+1];
+                WideCharToMultiByte ( CP_UTF8, 0, text, -1, str, length, NULL, NULL );
+                name = str;
+                delete [] str;
+                pItem->Release();
+            }
 
-			if( S_OK == pNode->selectSingleNode( L"Low", &pItem ) )
-			{
-				CComBSTR text;
-				pItem->get_text( &text );
-				low = (float)wcstod( text, NULL );
-				pItem->Release();
-			}
+            if ( S_OK == pNode->selectSingleNode ( L"Type", &pItem ) )
+            {
+                CComBSTR text;
+                pItem->get_text ( &text );
 
-			if( S_OK == pNode->selectSingleNode( L"High", &pItem ) )
-			{
-				CComBSTR text;
-				pItem->get_text( &text );
-				high = (float)wcstod( text, NULL );
-				pItem->Release();
-			}
+                if ( text == L"Temperature" )
+                {
+                    sensorType = Sensor::Type_Temperature;
+                }
+                else if ( text == L"Humidity" )
+                {
+                    sensorType = Sensor::Type_Humidity;
+                }
+                else if ( text == L"Pressure" )
+                {
+                    sensorType = Sensor::Type_Pressure;
+                }
+                pItem->Release();
+            }
 
-			Sensor* pSensor = new Sensor( unitCode, name, sensorType, low );
-			pSensor->SetCurrent( high );
-			m_sensorMap[unitCode] = pSensor;
+            if ( S_OK == pNode->selectSingleNode ( L"Low", &pItem ) )
+            {
+                CComBSTR text;
+                pItem->get_text ( &text );
+                low = ( float ) wcstod ( text, NULL );
+                pItem->Release();
+            }
 
-			// Move to the next entry
-			IXMLDOMNode* pSibling;
-			pNode->get_nextSibling( &pSibling );
-			pNode->Release();
-			pNode = pSibling;
-		}
+            if ( S_OK == pNode->selectSingleNode ( L"High", &pItem ) )
+            {
+                CComBSTR text;
+                pItem->get_text ( &text );
+                high = ( float ) wcstod ( text, NULL );
+                pItem->Release();
+            }
 
-		pXMLElement->Release();
-		retVal = true;
-		break;
-	}
+            Sensor* pSensor = new Sensor ( unitCode, name, sensorType, low );
+            pSensor->SetCurrent ( high );
+            m_sensorMap[unitCode] = pSensor;
 
-	// Cleanup
-	if( pXMLDoc )
-	{
-		pXMLDoc->Release();
-	}
+            // Move to the next entry
+            IXMLDOMNode* pSibling;
+            pNode->get_nextSibling ( &pSibling );
+            pNode->Release();
+            pNode = pSibling;
+        }
 
-	CoUninitialize();
+        pXMLElement->Release();
+        retVal = true;
+        break;
+    }
 
-	return retVal;
+    // Cleanup
+    if ( pXMLDoc )
+    {
+        pXMLDoc->Release();
+    }
+
+    CoUninitialize();
+
+    return retVal;
 }
 
 
@@ -466,60 +484,60 @@ bool SensorManager::LoadSensors()
 
 bool SensorManager::SaveSensors()
 {
-	char filename[MAX_PATH];
-	::GetCurrentDirectory( MAX_PATH, filename );
-	strcat( filename, "\\sensors.xml" );
+    char filename[MAX_PATH];
+    ::GetCurrentDirectory ( MAX_PATH, filename );
+    strcat ( filename, "\\sensors.xml" );
 
-	FILE* fp = fopen( filename, "w" );
-	if( NULL == fp )
-	{
-		return false;
-	}
+    FILE* fp = fopen ( filename, "w" );
+    if ( NULL == fp )
+    {
+        return false;
+    }
 
-	fprintf( fp, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" );
-	fprintf( fp, "<SensorList>\n" );
+    fprintf ( fp, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" );
+    fprintf ( fp, "<SensorList>\n" );
 
-	map<uint8,Sensor*>::iterator iter = m_sensorMap.begin();
-	while( iter != m_sensorMap.end() )
-	{
-		Sensor* pSensor = iter->second;
-		++iter;
+    map<uint8,Sensor*>::iterator iter = m_sensorMap.begin();
+    while ( iter != m_sensorMap.end() )
+    {
+        Sensor* pSensor = iter->second;
+        ++iter;
 
-		fprintf( fp, "<Sensor>\n" );
-		fprintf( fp, "<UnitCode>%d</UnitCode>\n", pSensor->GetUnitCode() );
-		fprintf( fp, "<Name>%s</Name>\n", pSensor->GetName().c_str() );
+        fprintf ( fp, "<Sensor>\n" );
+        fprintf ( fp, "<UnitCode>%d</UnitCode>\n", pSensor->GetUnitCode() );
+        fprintf ( fp, "<Name>%s</Name>\n", pSensor->GetName().c_str() );
 
-		switch( pSensor->GetType() )
-		{
-			case Sensor::Type_Temperature:
-			{
-				fprintf( fp, "<Type>Generic</Type>\n" );
-				break;
-			}
-			case Sensor::Type_Humidity:
-			{
-				fprintf( fp, "<Type>Humidity</Type>\n" );
-				break;
-			}
-			case Sensor::Type_Pressure:
-			{
-				fprintf( fp, "<Type>Pressure</Type>\n" );
-				break;
-			}
-			default:
-			{
-				fprintf( fp, "<Type>Generic</Type>\n" );
-			}
-		}
+        switch ( pSensor->GetType() )
+        {
+        case Sensor::Type_Temperature:
+        {
+            fprintf ( fp, "<Type>Generic</Type>\n" );
+            break;
+        }
+        case Sensor::Type_Humidity:
+        {
+            fprintf ( fp, "<Type>Humidity</Type>\n" );
+            break;
+        }
+        case Sensor::Type_Pressure:
+        {
+            fprintf ( fp, "<Type>Pressure</Type>\n" );
+            break;
+        }
+        default:
+        {
+            fprintf ( fp, "<Type>Generic</Type>\n" );
+        }
+        }
 
-		fprintf( fp, "<Low>%.1f</Low>\n", pSensor->GetLow() );
-		fprintf( fp, "<High>%.1f</High>\n", pSensor->GetHigh() );
-		fprintf( fp, "</Sensor>\n" );
-	}
+        fprintf ( fp, "<Low>%.1f</Low>\n", pSensor->GetLow() );
+        fprintf ( fp, "<High>%.1f</High>\n", pSensor->GetHigh() );
+        fprintf ( fp, "</Sensor>\n" );
+    }
 
-	fprintf( fp, "</SensorList>\n" );
-	fclose( fp );
-	return true;
+    fprintf ( fp, "</SensorList>\n" );
+    fclose ( fp );
+    return true;
 }
 
 
