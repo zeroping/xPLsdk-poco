@@ -297,7 +297,7 @@ bool xplUDP::Connect()
             sa = SocketAddress ( Poco::Net::IPAddress(), m_rxPort );
             try
             {
-                m_sock = DatagramSocket ( sa,true );
+                m_sock = DatagramSocket ( sa,false );
                 bBound = true;
             }
             catch ( NetException & e )
