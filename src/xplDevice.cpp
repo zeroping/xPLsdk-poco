@@ -159,6 +159,8 @@ xplDevice::xplDevice
     m_deviceId = StringToLower ( _deviceId );
     m_instanceId = "default";
 
+    devLog.setLevel (Message::PRIO_TRACE  );
+    
     SetCompleteId();
 
     m_hRxInterrupt = new Poco::Event ( false );
@@ -1056,16 +1058,16 @@ void xplDevice::run ( void )
 
     while ( !m_bExitThread )
     {
-//     cout << "dev listen\n";
         // Deal with heartbeats
         int64_t currentTime;
         Poco::Timestamp tst;
         tst.update();
         currentTime = tst.epochMicroseconds();
         //GetSystemTimeAsFileTime( (FILETIME*)&currentTime );
-
+        
         if ( m_nextHeartbeat <= currentTime )
         {
+            poco_debug( commsLog, "Sending heartbeat" );
             // It is time to send a heartbeat
             if ( m_bConfigRequired )
             {
@@ -1080,7 +1082,6 @@ void xplDevice::run ( void )
 
             SetNextHeartbeatTime();
         }
-
         // Calculate the time (in milliseconds) until the next heartbeat
         int32 heartbeatTimeout = ( int32 ) ( ( m_nextHeartbeat - currentTime ) ); // Divide by 10000 to convert 100 nanosecond intervals to milliseconds.
         poco_debug ( devLog, "Sleeping " + NumberFormatter::format ( heartbeatTimeout/1000 ) + " seconds till next hbeat" );

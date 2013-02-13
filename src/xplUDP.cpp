@@ -108,6 +108,10 @@ xplUDP::xplUDP
     //m_listenOnAddress ( INADDR_ANY ),
     m_bListenToFilter ( false )
 {
+    
+    //commsLog.setLevel(Message::PRIO_TRACE );
+    Logger::setLevel("xplsdk", Message::PRIO_NOTICE  );
+    
     uint32 i;
 //
 //     // Build the list of local IP addreses
@@ -121,7 +125,7 @@ xplUDP::xplUDP
     for ( nit = netlist.begin(); nit != netlist.end(); ++nit )
     {
 //         cout << "net: " << (*nit).address().toString() << " : " << (*nit).broadcastAddress().toString() << "\n";
-        poco_debug ( commsLog, "network interface: " + ( *nit ).address().toString() +" : " + ( *nit ).broadcastAddress().toString() );
+        poco_information ( commsLog, "network interface: " + ( *nit ).address().toString() +" : " + ( *nit ).broadcastAddress().toString() );
         if ( ! ( *nit ).address().isLoopback() )
         {
             m_interface = ( *nit );
@@ -172,23 +176,12 @@ bool xplUDP::TxMsg
 
     if ( IsConnected() )
     {
-        // Build the complete message
-//         int8* pMsgBuffer;
-//         uint32 dataLength = _pMsg->GetRawData ( &pMsgBuffer );
 
         IPAddress lbcast = m_interface.broadcastAddress();
-
-
-        Poco::Net::SocketAddress sourceAddress ( m_interface.address(), 50000 );
-        Poco::Net::SocketAddress destAddress ( lbcast, 3865 );
-        DatagramSocket dgs ( sourceAddress,true );
-        dgs.setBroadcast ( true );
-
-        poco_debug ( commsLog, "TX message from  " + sourceAddress.toString() + " to " + destAddress.toString() );
+         Poco::Net::SocketAddress destAddress ( lbcast, 3865 );
         poco_trace ( commsLog, "_pMsg.GetRawData()" );
 
-
-        dgs.sendTo ( _pMsg.GetRawData().c_str() , _pMsg.GetRawData().size(), destAddress );
+        m_sock.sendTo ( _pMsg.GetRawData().c_str() , _pMsg.GetRawData().size(), destAddress );
 
     }
 
@@ -261,8 +254,10 @@ bool xplUDP::Connect()
     }
     m_rxPort = c_xplHubPort;
 
-    poco_information ( commsLog, "Trying port " + NumberFormatter::format ( m_rxPort ) );
-    Poco::Net::SocketAddress sa ( Poco::Net::IPAddress(), m_rxPort );
+    
+//     Poco::Net::SocketAddress sa ( Poco::Net::IPAddress(), m_rxPort );
+    Poco::Net::SocketAddress sa ( m_interface.broadcastAddress(), m_rxPort );
+    poco_information ( commsLog, "Trying port " + NumberFormatter::format ( m_rxPort ) + " on IP " + sa.toString() );
 
 //     // If we are not communicating via a hub (PocketPC app or the hub
 //     // app itself, for example), then we bind directly to the standard
@@ -277,7 +272,7 @@ bool xplUDP::Connect()
     }
     catch ( NetException & e )
     {
-        poco_information ( commsLog, "Can't open port " + NumberFormatter::format ( m_rxPort ) );
+        poco_information ( commsLog, "Can't open port " + NumberFormatter::format ( m_rxPort )  + " on IP " + sa.toString());
     }
 
 //     if ( !m_bViaHub )
@@ -294,15 +289,16 @@ bool xplUDP::Connect()
 
         while ( !bBound )
         {
-            sa = SocketAddress ( Poco::Net::IPAddress(), m_rxPort );
+            sa = SocketAddress ( m_interface.address(), m_rxPort );
             try
             {
                 m_sock = DatagramSocket ( sa,false );
+                m_sock.setBroadcast ( true );
                 bBound = true;
             }
             catch ( NetException & e )
             {
-                poco_information ( commsLog, "Can't open port " + NumberFormatter::format ( m_rxPort ) );
+                poco_information ( commsLog, "Can't open port " + NumberFormatter::format ( m_rxPort )  + " on IP " + sa.toString() );
                 m_rxPort += 1;
             }
 
@@ -324,6 +320,8 @@ bool xplUDP::Connect()
 //
 
 //     // Call the base class
+    commsLog.setLevel("trace");
+    
     xplComms::Connect();
 
     listenAdapt = new RunnableAdapter<xplUDP> ( *this,&xplUDP::ListenForPackets );
@@ -414,6 +412,7 @@ void xplUDP::SendHeartbeat
 )
 {
     AutoPtr<xplMsg> pMsg = new xplMsg ( xplMsg::c_xplStat, _source, "*", "hbeat", "app" );
+    cout << "ready to send\n";
     if ( pMsg )
     {
         int8 value[16];
@@ -426,7 +425,7 @@ void xplUDP::SendHeartbeat
 
         pMsg->AddValue ( "remote-ip", m_interface.address().toString() );
         pMsg->AddValue ( "version", _version );
-
+        
         TxMsg ( *pMsg );
     }
 }
@@ -481,12 +480,13 @@ void xplUDP::SendConfigHeartbeat
 
 void xplUDP::ListenForPackets()
 {
+
     poco_debug ( commsLog, "started listening" );
-    Poco::Timespan timeout = Poco::Timespan ( 0,0,0,1,0 );
+    Poco::Timespan timeout = Poco::Timespan ( 0,0,0,1,0 );    
     m_sock.setReceiveTimeout ( timeout );
     while ( this->IsConnected() ) //TODO locking here
     {
-        //cout << "listening with timeout " << m_sock.getReceiveTimeout().totalMilliseconds() <<"\n";
+//         cout << "listening with timeout " << m_sock.getReceiveTimeout().totalMilliseconds() <<"\n";
         char buffer[2024];
         Poco::Net::SocketAddress sender;
         //int bytesRead = m_sock.receiveFrom(buffer, sizeof(buffer)-1, sender);
@@ -496,10 +496,10 @@ void xplUDP::ListenForPackets()
             continue;
         }
         int bytesRead = m_sock.receiveFrom ( buffer, sizeof ( buffer )-1, sender );
-        //cout << "got " << bytesRead << " bytes\n";
+//         cout << "got " << bytesRead << " bytes\n";
         if ( bytesRead == 0 )
         {
-            cout << "no bytes\n";
+//             cout << "no bytes\n";
             continue;
         }
         buffer[bytesRead] = '\0';
@@ -539,6 +539,6 @@ void xplUDP::ListenForPackets()
 //             return ( pMsg );
 
     }
-    //poco_notice(commsLog, "UDP rx thread stopped");
+    poco_information(commsLog, "UDP rx thread stopped");
 }
 
