@@ -30,10 +30,10 @@
 ****																	****
 ***************************************************************************/
 
-#include "xplDevice.h"
-#include "xplUDP.h"
-#include "xplConfigItem.h"
-#include "xplMsg.h"
+#include "XplDevice.h"
+#include "XplUDP.h"
+#include "XplConfigItem.h"
+#include "XplMsg.h"
 #include "EventLog.h"
 #include "Poco/Thread.h"
 #include "Poco/RunnableAdapter.h"
@@ -56,8 +56,8 @@ string const c_version = "1.1.0";
 // (but without the .exe), or the event logging will not work.
 string const c_appName = "ConsoleApp";
 
-// void HandleMessages( xplDevice* _pDevice );
-// void Configure( xplDevice* _pDevice );
+// void HandleMessages( XplDevice* _pDevice );
+// void Configure( XplDevice* _pDevice );
 
 Poco::Event* configEvent;
 /***************************************************************************
@@ -80,10 +80,10 @@ public:
     void Configure ( DeviceConfigNotification* );
     bool testRunning();
 
-    xplComms* pComms;
-    xplDevice* pDevice;
+    XplComms* pComms;
+    XplDevice* pDevice;
     Thread listenThread;
-    Poco::Event* xplMsgEvent;
+    Poco::Event* XplMsgEvent;
     Mutex runningMutex;
     bool running;
 };
@@ -99,7 +99,7 @@ TestApp::TestApp()
     //xpl::EventLog::Create( c_appName );
 
     // Create the xPL communications object
-    pComms = xplUDP::Create ( true );
+    pComms = XplUDP::Create ( true );
     if ( NULL == pComms )
     {
         cout << "error\n\n";
@@ -112,8 +112,8 @@ TestApp::TestApp()
     // to request a vendor ID.
     // Replace "device" with a suitable device name for your application - usually something
     // related to what is being xPL-enabled.  Device names can be no more than 8 characters.
-    cout << "app: xplUDP created\n";
-    pDevice = xplDevice::Create ( "vendor", "device", c_version, true, true, pComms );
+    cout << "app: XplUDP created\n";
+    pDevice = XplDevice::Create ( "vendor", "device", c_version, true, true, pComms );
     if ( NULL == pDevice )
     {
         cout << "error\n\n";
@@ -123,7 +123,7 @@ TestApp::TestApp()
     // Create any additional config items
     // As an example, the following code creates an item to hold the index
     // of a com port.  The value can be changed by the user in xPLHal.
-    xplConfigItem* pItem = new xplConfigItem ( "comport", "reconf" );
+    XplConfigItem* pItem = new XplConfigItem ( "comport", "reconf" );
     if ( NULL != pItem )
     {
         // Default the com port to COM1
@@ -139,7 +139,7 @@ TestApp::TestApp()
     //pDevice->configTaskManager.addObserver(Observer<TestApp, DeviceConfigNotification>(*this,&TestApp::Configure));
     pDevice->configNotificationCenter.addObserver ( Observer<TestApp, DeviceConfigNotification> ( *this,&TestApp::Configure ) );
 
-    // Init the xplDevice
+    // Init the XplDevice
     // Note that all config items must have been set up before Init() is called.
     pDevice->Init();
 
@@ -164,7 +164,7 @@ TestApp::~TestApp()
     if ( pDevice )
     {
         cout << "app: destroying device\n";
-        xplDevice::Destroy ( pDevice );
+        XplDevice::Destroy ( pDevice );
         pDevice = NULL;
     }
 
@@ -173,7 +173,7 @@ TestApp::~TestApp()
     if ( pComms )
     {
         cout << "app: destroying pComms\n";
-        xplUDP::Destroy ( pComms );
+        XplUDP::Destroy ( pComms );
         pComms = NULL;
     }
 
@@ -210,7 +210,7 @@ void TestApp::run()
 void TestApp::HandleMessages ( MessageRxNotification* mNot )
 {
     cout<<"app: RX event fired in thread " << Thread::currentTid()  << "\n";
-    xplMsg* pMsg = NULL;
+    XplMsg* pMsg = NULL;
 
 
     pMsg = mNot->message;
@@ -251,7 +251,7 @@ void TestApp::Configure ( DeviceConfigNotification* confNot )
     // As an example, the Com Port index.
     //
     cout << "app: start handling rconfigure" << Thread::currentTid()  << "\n";
-    xplConfigItem const* pItem = pDevice->GetConfigItem ( "comport" );
+    XplConfigItem const* pItem = pDevice->GetConfigItem ( "comport" );
     string value = pItem->GetValue();
     if ( !value.empty() )
     {

@@ -1,6 +1,6 @@
 /***************************************************************************
 ****																	****
-****	xplMsgItem.cpp													****
+****	XplMsgItem.cpp													****
 ****																	****
 ****	Container for xpl device configuration data		 				****
 ****																	****
@@ -31,32 +31,34 @@
 ****																	****
 ***************************************************************************/
 
-#include "xplCore.h"
-#include "xplStringUtils.h"
-#include "xplMsgItem.h"
+#include "XplCore.h"
+#include "XplStringUtils.h"
+#include "XplMsgItem.h"
+#include "Poco/String.h"
 
+using Poco::toLower;
 using namespace xpl;
 
 
 /***************************************************************************
 ****																	****
-****	xplMsgItem::xplMsgItem											****
+****	XplMsgItem::XplMsgItem											****
 ****																	****
 ***************************************************************************/
 
-xplMsgItem::xplMsgItem ( string const& _name )
+XplMsgItem::XplMsgItem ( string const& _name )
 {
-    m_name = StringToLower ( _name );
+    m_name = toLower ( _name );
 }
 
 
 /***************************************************************************
 ****																	****
-****	xplMsgItem::AddValue											****
+****	XplMsgItem::AddValue											****
 ****																	****
 ***************************************************************************/
 
-bool xplMsgItem::AddValue
+bool XplMsgItem::AddValue
 (
     string const& _value,
     char const _delimiter
@@ -92,11 +94,11 @@ bool xplMsgItem::AddValue
 
 /***************************************************************************
 ****																	****
-****	xplMsgItem::SetValue											****
+****	XplMsgItem::SetValue											****
 ****																	****
 ***************************************************************************/
 
-bool xplMsgItem::SetValue ( string const& _value, uint32 const _index /* = 0 */ )
+bool XplMsgItem::SetValue ( string const& _value, uint32 const _index /* = 0 */ )
 {
     // Make sure there is a value at this index
     if ( _index >= GetNumValues() )
@@ -112,11 +114,11 @@ bool xplMsgItem::SetValue ( string const& _value, uint32 const _index /* = 0 */ 
 
 /***************************************************************************
 ****																	****
-****	xplMsgItem::GetValue											****
+****	XplMsgItem::GetValue											****
 ****																	****
 ***************************************************************************/
 
-string const xplMsgItem::GetValue
+string const XplMsgItem::GetValue
 (
     uint32 const _index /* =0 */
 ) const

@@ -1,6 +1,6 @@
 /***************************************************************************
 ****																	****
-****	xplConfigItem.cpp												****
+****	XplConfigItem.cpp												****
 ****																	****
 ****	Container for xpl device configuration data		 				****
 ****																	****
@@ -31,40 +31,40 @@
 ****																	****
 ***************************************************************************/
 
-#include "xplCore.h"
-#include "xplConfigItem.h"
-#include "xplStringUtils.h"
+#include "XplCore.h"
+#include "XplConfigItem.h"
+#include "XplStringUtils.h"
 
 using namespace xpl;
 
 
 /***************************************************************************
 ****																	****
-****	xplConfigItem::AddValue											****
+****	XplConfigItem::AddValue											****
 ****																	****
 ***************************************************************************/
 
-bool xplConfigItem::AddValue ( string const& _value )
+bool XplConfigItem::AddValue ( string const& _value )
 {
     if ( GetNumValues() >= m_maxValues )
     {
         return false;
     }
 
-    xplMsgItem::AddValue ( _value );
+    XplMsgItem::AddValue ( _value );
     return true;
 }
 
 
 /***************************************************************************
 ****																	****
-****	xplConfigItem::RegistryLoad										****
+****	XplConfigItem::RegistryLoad										****
 ****																	****
 ****	Read config values from the registry (Not PocketPC)				****
 ****																	****
 ***************************************************************************/
 /*
-bool xplConfigItem::RegistryLoad( HKEY& _hKey )
+bool XplConfigItem::RegistryLoad( HKEY& _hKey )
 {
 	// Remove the existing values
 	ClearValues();
@@ -118,13 +118,13 @@ bool xplConfigItem::RegistryLoad( HKEY& _hKey )
 
 /***************************************************************************
 ****																	****
-****	xplConfigItem::RegistrySave										****
+****	XplConfigItem::RegistrySave										****
 ****																	****
 ****	Write config values to the registry (Not PocketPC)				****
 ****																	****
 ***************************************************************************/
 /*
-bool xplConfigItem::RegistrySave( HKEY& _hKey )const
+bool XplConfigItem::RegistrySave( HKEY& _hKey )const
 {
 	// Values must be concatenated into a single buffer
 
@@ -171,14 +171,14 @@ bool xplConfigItem::RegistrySave( HKEY& _hKey )const
 
 /***************************************************************************
 ****																	****
-****	xplConfigItem::FileLoad											****
+****	XplConfigItem::FileLoad											****
 ****																	****
 ****	Read config values from a file (PocketPC Only)					****
 ****	Mimics the data format used in RegistryLoad()					****
 ****																	****
 ***************************************************************************/
 /*
-bool xplConfigItem::FileLoad( HANDLE& _hFile )
+bool XplConfigItem::FileLoad( HANDLE& _hFile )
 {
 	// Remove the existing values
 	ClearValues();
@@ -209,14 +209,14 @@ bool xplConfigItem::FileLoad( HANDLE& _hFile )
 
 /***************************************************************************
 ****																	****
-****	xplConfigItem::FileSave											****
+****	XplConfigItem::FileSave											****
 ****																	****
 ****	Write config values to a file (PocketPC Only)					****
 ****	Mimics the data format used in RegistrySave()					****
 ****																	****
 ***************************************************************************/
 /*
-bool xplConfigItem::FileSave( HANDLE& _hFile )const
+bool XplConfigItem::FileSave( HANDLE& _hFile )const
 {
 	// Values must be concatenated into a single buffer
 

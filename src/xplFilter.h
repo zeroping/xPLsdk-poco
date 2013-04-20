@@ -37,20 +37,20 @@
 #define _XPLFILTER_H
 
 #include <string>
-#include "xplCore.h"
+#include "XplCore.h"
 
 namespace xpl
 {
 
-class xplDevice;
-class xplMsg;
+class XplDevice;
+class XplMsg;
 
 /**
  * Implements filtering of xPL messages.
- * Note: This class has an entirely private interface, with only the xplDevice
+ * Note: This class has an entirely private interface, with only the XplDevice
  * class being granted access.
  * <p>
- * Filters are one of the config items defined by the xplDevice, and are set
+ * Filters are one of the config items defined by the XplDevice, and are set
  * up by the user in xPLHal.  They take the form of a string defined as
  * follows:
  * <p>
@@ -63,7 +63,7 @@ class xplMsg;
 class xplFilter
 {
 private:
-    friend class xplDevice;
+    friend class XplDevice;
 
     /**
      * Constructor.
@@ -85,7 +85,7 @@ private:
      * @return True if the message passes the filters, false if it
      * should be ignored.
      */
-    bool Allow ( xplMsg const& _msg ) const;
+    bool Allow ( XplMsg const& _msg ) const;
 
     enum
     {

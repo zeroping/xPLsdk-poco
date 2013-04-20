@@ -24,7 +24,12 @@ cmake_minimum_required(VERSION 2.6)
 #add_executable(xplsdk xplComms.cpp xplDevice.cpp xplMsg.cpp xplStringUtils.cpp  xplConfigItem.cpp xplFilter.cpp xplMsgItem.cpp xplUDP.cpp test/ConsoleApp.cpp)
 ## disabled - RegUtils.cpp XMLUtils.cpp
 
-add_library(xplsdk  xplComms.cpp xplDevice.cpp xplMsg.cpp xplStringUtils.cpp  xplConfigItem.cpp xplFilter.cpp xplMsgItem.cpp xplUDP.cpp)
+add_library(xplsdk  XplComms.cpp XplDevice.cpp XplMsg.cpp XplStringUtils.cpp  XplConfigItem.cpp xplFilter.cpp XplMsgItem.cpp XplUDP.cpp)
+
+option(DEBUGPRINTS "Prints a lot of debug prints" 1)
+if(DEBUGPRINTS)
+    set_target_properties(xplsdk PROPERTIES COMPILE_DEFINITIONS "_DEBUG=1")
+endif()
 
 ## Link libraries
 find_library(POCO_FOUNDATION PocoFoundation)

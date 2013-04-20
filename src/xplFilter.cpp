@@ -31,10 +31,10 @@
 ****																	****
 ***************************************************************************/
 
-#include "xplCore.h"
-#include "xplStringUtils.h"
+#include "XplCore.h"
+#include "XplStringUtils.h"
 #include "xplFilter.h"
-#include "xplMsg.h"
+#include "XplMsg.h"
 
 using namespace xpl;
 
@@ -95,7 +95,7 @@ xplFilter::xplFilter ( string const& _filterStr )
 ****																	****
 ***************************************************************************/
 
-bool xplFilter::Allow ( xplMsg const& _msg ) const
+bool xplFilter::Allow ( XplMsg const& _msg ) const
 {
     // Check the message type
     if ( ( m_filterElementMask & FilterElement_MsgType )

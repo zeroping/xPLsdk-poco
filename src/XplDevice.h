@@ -1,6 +1,6 @@
 /***************************************************************************
 ****																	****
-****	xplDevice.h														****
+****	XplDevice.h														****
 ****																	****
 ****	xPL Communications												****
 ****																	****
@@ -33,8 +33,8 @@
 
 #pragma once
 
-#ifndef _xPLDevice_H
-#define _xPLDevice_H
+#ifndef _XplDevice_H
+#define _XplDevice_H
 
 //#include <winsock2.h> - not in linux
 #include <string>
@@ -51,8 +51,8 @@
 #include <Poco/TaskManager.h>
 #include <iostream>
 #include <fstream>
-#include "xplCore.h"
-#include "xplComms.h"
+#include "XplCore.h"
+#include "XplComms.h"
 #include "Poco/Logger.h"
 #include "Poco/NumberFormatter.h"
 
@@ -62,10 +62,10 @@ using namespace Poco;
 namespace xpl
 {
 
-class xplComms;
-class xplMsg;
+class XplComms;
+class XplMsg;
 class xplFilter;
-class xplConfigItem;
+class XplConfigItem;
 
 
 
@@ -75,44 +75,44 @@ class DeviceConfigNotification: public Notification
 
 /**
  * Implements the core xPL functionality.
- * The xplDevice class provides all the functionality required to create
+ * The XplDevice class provides all the functionality required to create
  * a basic xPL-enabled application.  It handles the sending and receiving
  * of xPL messages, sends heartbeats and supports comfiguration via xPLHal
  * All the main application has to do is to watch a pair of events.
- * The first can be obtained by calling xplDevice::GetMsgEvent, and is
+ * The first can be obtained by calling XplDevice::GetMsgEvent, and is
  * signalled whenever an xPL message has been received, and is not a message
  * that the xPL Device deals with automatically.  The message can be obtained
- * by calling xplDevice::GetMsg.  The second event is used to indicate that
+ * by calling XplDevice::GetMsg.  The second event is used to indicate that
  * the config items have been changed, and is obtained by calling
- * xplDevice::GetConfigEvent.
+ * XplDevice::GetConfigEvent.
  * <p>
- * The procedure for creating and initialising an xplDevice object is as
+ * The procedure for creating and initialising an XplDevice object is as
  * follows:
  * <p>
- * 1) Create a communications object for the xplDevice to use.  For LAN or
- * Internet communications, create an xplUDP object.
+ * 1) Create a communications object for the XplDevice to use.  For LAN or
+ * Internet communications, create an XplUDP object.
  * <p>
- * 2) Call xplDevice::Create to generate a new xplDevice object, passing in the
+ * 2) Call XplDevice::Create to generate a new XplDevice object, passing in the
  * communications object created in step 1.
  * <p>
  * 3) Create any config items that your application requires, and use the
- * AddConfigItem method to add them to the xplDevice.
+ * AddConfigItem method to add them to the XplDevice.
  * <p>
- * 4) Finish with a call to xplDevice::Init.  This will load any existing
+ * 4) Finish with a call to XplDevice::Init.  This will load any existing
  * configuration and signal the config event so your application can
  * do any initialisation that is based on its config item values.
  * <p>
  * That is all there is to it.  When you are finished, simply call
- * xplDevice::Destroy to delete the xplDevice object.
+ * XplDevice::Destroy to delete the XplDevice object.
  * <p>
  * Note: xPL messages not related to configuration will be ignored until
  * the application leaves config mode (i.e. when the user has configured
  * it in xPLHal).  During this time your application will also be unable
  * to send any xPL Messages, and should hold off performing its main functions.
- * The method xplDevice::IsInConfigMode can be used to determine whether your
+ * The method XplDevice::IsInConfigMode can be used to determine whether your
  * processing should go ahead.
  */
-class xplDevice : public Runnable
+class XplDevice : public Runnable
 {
 public:
 
@@ -121,18 +121,18 @@ public:
      * Parameters are as described for Create.
      * @see Create, Destroy
      */
-    xplDevice ( string const& _vendorId, string const& _deviceId, string const& _version, bool const _configInRegistry, bool const _bFilterMsgs, xplComms* _pComms );
+    XplDevice ( string const& _vendorId, string const& _deviceId, string const& _version, bool const _configInRegistry, bool const _bFilterMsgs, XplComms* _pComms );
 
     /**
      * Destructor.  Only to be called via the static Destroy method.
      * @see Destroy, Create
      */
-    ~xplDevice();
+    ~XplDevice();
 
 
     /**
-     * Create an xplDevice.
-     * The xplDevice provides the all of the core xPL functionality for an application.
+     * Create an XplDevice.
+     * The XplDevice provides the all of the core xPL functionality for an application.
      * @param _vendorId your vendor ID.  A string containing the vendor name of the application author.
      * Vendor names are assigned on a first-come, first-served basis by the xPL project organsisers.
      * Vendor IDs are a maximum of 8 characters in length.  To request a vendor name, post a message to
@@ -151,29 +151,19 @@ public:
      * the received message queue.  This should normally be true unless the application needs to look at
      * messages intended for other applications.
      * @param _pComms communications object to use when sending/receiving xPL messages.  For normal
-     * ethernet communications, create an xplUDP object and pass it in here.
-     * @return A pointer to a new xplDevice.  If an error occured during creation, the method returns
+     * ethernet communications, create an XplUDP object and pass it in here.
+     * @return A pointer to a new XplDevice.  If an error occured during creation, the method returns
      * NULL instead.
-     * @see Destroy, xplComms, xplUDP
-     */
-    static xplDevice* Create ( string const& _vendorId, string const& _deviceId, string const& _version, bool const _bConfigInRegistry, bool const _bFilterMsgs, xplComms* _pComms );
 
     /**
-     * Deletes the xplDevice and cleans up any associated objects.
-     * @param _pDevice pointer to the xplDevice object to be destroyed.
-     * @see Create
-     */
-    static void Destroy ( xplDevice* _pDevice );
-
-    /**
-     * Initialises the xplDevice.  Loads any existing configuration
+     * Initialises the XplDevice.  Loads any existing configuration
      * data from the registry or a file, which will trigger the
      * registered config callback functions if successful.  It then
      * starts the thread that will handle all xPL Msg traffic.
      * <p>
      * All config items and callbacks must be set up before calling
      * this method.
-     * @return False if the xplDevice has already been intialised,
+     * @return False if the XplDevice has already been intialised,
      * without having since been deinitialised.  Otherwise it
      * returns true.
      * @see Deinit
@@ -181,21 +171,21 @@ public:
     bool Init();
 
 // 	/**
-// 	 * Deinitialises the xplDevice
-// 	 * @return False if the xplDevice has not been initialised,
+// 	 * Deinitialises the XplDevice
+// 	 * @return False if the XplDevice has not been initialised,
 // 	 * otherwise it returns true.
 // 	 * @see Init
 // 	 */
 // 	bool Deinit();
 
     /**
-     * Pauses the xplDevice.  This method is provided to support the
+     * Pauses the XplDevice.  This method is provided to support the
      * ability to suspend and resume operations when running as a service.
      */
     void Pause();
 
     /**
-     * Unpauses the xplDevice.  This method is provided to support the
+     * Unpauses the XplDevice.  This method is provided to support the
      * ability to suspend and resume operations when running as a service.
      */
     void Resume();
@@ -235,11 +225,11 @@ public:
      * This method will fail if the application is in config mode (that
      * is, waiting to be set up in xPLHal).  The message is added to a
      * queue, and will be sent as soon as the device thread is able.
-     * @param _pMsg xplMsg object containing the xPL message to be sent
+     * @param _pMsg XplMsg object containing the xPL message to be sent
      * @return True if the message was queued successfully.
-     * @see xplMsg
+     * @see XplMsg
      */
-    bool SendMsg ( xplMsg* _pMsg );
+    bool SendMsg ( XplMsg* _pMsg );
 
 
     /**
@@ -248,12 +238,12 @@ public:
      * <p>
      * This function must only be called before Init(), i.e. before the
      * config item values are read from the registry or configuration file.
-     * @param _pItem config item to be added to the xplDevice
+     * @param _pItem config item to be added to the XplDevice
      * @return False if a config item with the same name has already been
      * added, otherwise it returns true.
-     * @see GetConfigItem, xplConfigItem
+     * @see GetConfigItem, XplConfigItem
      */
-    bool AddConfigItem ( xplConfigItem* _pItem );
+    bool AddConfigItem (  AutoPtr<XplConfigItem> _pItem );
 
     /**
      * Removes a config item to the device.  A config item represents a variable
@@ -261,20 +251,20 @@ public:
      * <p>
      * @param _name name of the config item to remove.
      * @return False if a config item with this name cannot be found, otherwise it returns true.
-     * @see AddConfigItem, GetConfigItem, xplConfigItem
+     * @see AddConfigItem, GetConfigItem, XplConfigItem
      */
     bool RemoveConfigItem ( string const& _name );
 
     /**
      * Gets the config item with the specified name.
-     * Searches the xplDevice's list of config items for one that matches
+     * Searches the XplDevice's list of config items for one that matches
      * the provided name.
      * @param _name name of the config item to get.
      * @return the config item, or NULL if no item by that name can be
      * found.
-     * @see AddConfigItem, xplConfigItem
+     * @see AddConfigItem, XplConfigItem
      */
-    xplConfigItem const* GetConfigItem ( string const& _name ) const;
+    AutoPtr<XplConfigItem> GetConfigItem ( string const& _name ) const;
 
     /**
      * Gets the vendor ID string.
@@ -365,12 +355,12 @@ private:
      * Handles the xPL configuration messages.
      * Registered as a message callback during Init.
      * @param _pMsg message to be handled
-     * @param _pContext callback context.  A pointer to the xplDevice
+     * @param _pContext callback context.  A pointer to the XplDevice
      * that registered this callback.
      * @return True if the message has been handled.
     * @see HandleMsgForUs, RegisterMsgCallback, pfnMsgCallback
      */
-    static bool MsgCallback ( xplMsg* _pMsg, void* _pContext );
+    static bool MsgCallback ( XplMsg* _pMsg, void* _pContext );
 
 
     /**
@@ -378,7 +368,7 @@ private:
      * @param _pMsg the message to test.
      * @return True if the message is intended for this application
      */
-    bool IsMsgForThisApp ( xplMsg* _pMsg );
+    bool IsMsgForThisApp ( XplMsg* _pMsg );
 
     /**
      * Tries to handle a received message.
@@ -387,10 +377,10 @@ private:
      * @return True if the message was dealt with.
      * @see MsgCallback
      */
-    bool HandleMsgForUs ( xplMsg* _pMsg );
+    bool HandleMsgForUs ( XplMsg* _pMsg );
 
     /**
-     * Configures the xplDevice.  Sets the device parameters according to
+     * Configures the XplDevice.  Sets the device parameters according to
      * the values stored in the config items.  This method should only be
      * called by ConfigCallback.
      * @see ConfigCallback
@@ -440,19 +430,19 @@ private:
     void HandleRx ( MessageRxNotification* );
 
     /**
-     * Thread procedure that handles all the xplDevice message traffic
-     * @param _lpArg thread procedure argument.  Points to the xplDevice object.
+     * Thread procedure that handles all the XplDevice message traffic
+     * @param _lpArg thread procedure argument.  Points to the XplDevice object.
      * @return The exit code of the thread.
      */
     static  bool DeviceThread ( void* _lpArg );
 
     /**
-     * Handles all the xplDevice message traffic.
+     * Handles all the XplDevice message traffic.
      * This method is called from DeviceThread and does not
      * exit until the thread is finished.  It handles heartbeats,
      * triggers callbacks when messages are received, and sends
      * messages queued by calls to SendMsg.
-     * @return False if the xplDevice has not been initialised,
+     * @return False if the XplDevice has not been initialised,
      * otherwise it returns true.
      */
     void run();
@@ -468,7 +458,7 @@ private:
     uint32					m_rapidHeartbeatCounter;	// Counts down to zero to stop the rapid heatbeats after two minutes.
     bool					m_bWaitingForHub;			// True if we haven't yet detected the presence of the hub
 
-    Poco::Thread					m_hThread;					// Handle to the xplDevice thread
+    Poco::Thread					m_hThread;					// Handle to the XplDevice thread
     Poco::Event*          m_hRxInterrupt;       // Event that is signalled to interrupt the device thread waiting for messages.
     Poco::Mutex		m_criticalSection;			// Used to serialise access to m_txBuffer.
 
@@ -476,11 +466,11 @@ private:
 
     bool					m_bConfigRequired;			// True if configuration via xPLHal is required
     bool					m_bConfigInRegistry;		// Config values to be loaded/saved in the registry
-    vector<xplConfigItem*>	m_configItems;				// List of config items
+    vector<AutoPtr<XplConfigItem> >	m_configItems;				// List of config items
     vector<xplFilter*>		m_filters;					// List of message filters
     bool					m_bFilterMsgs;				// If false, all messages received by the app are queued - regardless of the message target or any filters that have been set.
     bool					m_bInitialised;				// True if Init() has been called
-    xplComms*				m_pComms;					// Communications object to use for sending/receiving  messages
+    XplComms*				m_pComms;					// Communications object to use for sending/receiving  messages
 
     static string const		c_xplGroup;						// Constant containing the string for a group message target
     static uint32 const		c_rapidHeartbeatFastInterval;	// Three seconds for the first
@@ -493,5 +483,5 @@ private:
 
 } // namespace xpl
 
-#endif // _xPLDevice_H
+#endif // _XplDevice_H
 

@@ -1,6 +1,6 @@
 /***************************************************************************
 ****																	****
-****	xplMsg.cpp														****
+****	XplMsg.cpp														****
 ****																	****
 ****	Handle the parsing of xpl messages								****
 ****																	****
@@ -31,38 +31,41 @@
 ****																	****
 ***************************************************************************/
 
-#include "xplCore.h"
-#include "xplStringUtils.h"
-#include "xplMsg.h"
+#include "XplCore.h"
+#include "XplStringUtils.h"
+#include "XplMsg.h"
 #include <iostream>
 #include <sstream>
+#include <Poco/Logger.h>
+#include <Poco/String.h>
 
 using namespace xpl;
+using Poco::toLower;
 
-string const xplMsg::c_xplCmnd = "xpl-cmnd";
-string const xplMsg::c_xplTrig = "xpl-trig";
-string const xplMsg::c_xplStat = "xpl-stat";
-string const xplMsg::c_xplHop = "hop";
-string const xplMsg::c_xplSource = "source";
-string const xplMsg::c_xplTarget = "target";
-string const xplMsg::c_xplOpenBrace = "{";
-string const xplMsg::c_xplCloseBrace = "}";
-string const xplMsg::c_xplTargetAll = "*";
+string const XplMsg::c_xplCmnd = "xpl-cmnd";
+string const XplMsg::c_xplTrig = "xpl-trig";
+string const XplMsg::c_xplStat = "xpl-stat";
+string const XplMsg::c_xplHop = "hop";
+string const XplMsg::c_xplSource = "source";
+string const XplMsg::c_xplTarget = "target";
+string const XplMsg::c_xplOpenBrace = "{";
+string const XplMsg::c_xplCloseBrace = "}";
+string const XplMsg::c_xplTargetAll = "*";
 
 
 /***************************************************************************
 ****																	****
-****	xplMsg Constructor												****
+****	XplMsg Constructor												****
 ****																	****
 ***************************************************************************/
 
-xplMsg::xplMsg() :
+XplMsg::XplMsg() :
     m_hop ( 1 ),
     m_refCount ( 1 )
 {
 }
 
-xplMsg::xplMsg (
+XplMsg::XplMsg (
     string const& _type,
     string const& _source,
     string const& _target,
@@ -79,11 +82,9 @@ xplMsg::xplMsg (
     SetSchemaType ( _schemaType );
 }
 
-xplMsg::xplMsg ( string str )
+XplMsg::XplMsg ( string str )
 {
-
     ParseFromString ( str );
-
 }
 
 
@@ -91,16 +92,16 @@ xplMsg::xplMsg ( string str )
 
 /***************************************************************************
 ****																	****
-****	xplMsg Destructor												****
+****	XplMsg Destructor												****
 ****																	****
 ***************************************************************************/
 
-xplMsg::~xplMsg()
+XplMsg::~XplMsg()
 {
-    vector<xplMsgItem*>::iterator iter = m_msgItems.begin();
+    vector<AutoPtr<XplMsgItem> >::iterator iter = m_msgItems.begin();
     while ( iter != m_msgItems.end() )
     {
-        delete ( *iter );
+//         delete ( *iter );
         iter = m_msgItems.erase ( iter );
     }
 
@@ -109,11 +110,11 @@ xplMsg::~xplMsg()
 
 /***************************************************************************
 ****																	****
-****	xplMsg::Create													****
+****	XplMsg::Create													****
 ****																	****
 ***************************************************************************/
 
-void xplMsg::ParseFromString ( string str )
+void XplMsg::ParseFromString ( string str )
 {
     // Read the message type
     string line;
@@ -124,8 +125,7 @@ void xplMsg::ParseFromString ( string str )
     pos = StringReadLine ( str, pos, &line );
     if ( c_xplOpenBrace != line )
     {
-        // Opening brace not found
-        goto xplMsgCreateFailed;
+        throw XplMsgParseException("Opening brace not found");
     }
 
     // Read the name-value pairs  from the header
@@ -156,8 +156,7 @@ void xplMsg::ParseFromString ( string str )
         }
         else
         {
-            // Invalid header item
-            goto xplMsgCreateFailed;
+            throw XplMsgParseException("Invalid header item");
         }
     }
 
@@ -176,8 +175,7 @@ void xplMsg::ParseFromString ( string str )
     pos = StringReadLine ( str, pos, &line );
     if ( c_xplOpenBrace != line )
     {
-        // Opening brace not found
-        goto xplMsgCreateFailed;
+        throw XplMsgParseException("Opening brace not found");
     }
 
     // Read the name-value pairs
@@ -190,9 +188,7 @@ void xplMsg::ParseFromString ( string str )
 
         if ( name.empty() )
         {
-            // Reached the end of the data without hitting a
-            // closing brace.  The message is malformed.
-            goto xplMsgCreateFailed;
+            throw XplMsgParseException("Reached the end of the data without hitting a closing brace.  The message is malformed.");
         }
 
         if ( c_xplCloseBrace == name )
@@ -210,11 +206,7 @@ void xplMsg::ParseFromString ( string str )
 
     // Message successfully read from buffer
     return;
-
-    // Error occurred reading data
-xplMsgCreateFailed:
-    cout << "ERROR: failed to parse message!\n";
-
+    
 }
 
 
@@ -222,11 +214,11 @@ xplMsgCreateFailed:
 
 /***************************************************************************
 ****																	****
-****	xplMsg::GetAsRawData											****
+****	XplMsg::GetAsRawData											****
 ****																	****
 ***************************************************************************/
 
-string xplMsg::GetRawData( )
+string XplMsg::GetRawData( )
 {
     if ( m_raw.size() ==0 )
     {
@@ -240,28 +232,14 @@ string xplMsg::GetRawData( )
         msgstream << m_schemaClass<<"." << m_schemaType << "\n";
         msgstream << "{\n";
 
-
-// 		sprintf( m_pBuffer,
-// 				"%s\n{\nhop=%d\nsource=%s\ntarget=%s\n}\n%s.%s\n{\n",
-// 				m_type.c_str(),
-// 				m_hop,
-// 				m_source.c_str(),
-// 				m_target.c_str(),
-// 				m_schemaClass.c_str(),
-// 				m_schemaType.c_str()
-// 				);
-
-        for ( std::vector< xplMsgItem* >::iterator iter = m_msgItems.begin(); iter != m_msgItems.end(); ++iter )
+        for ( std::vector< AutoPtr<XplMsgItem>  >::iterator iter = m_msgItems.begin(); iter != m_msgItems.end(); ++iter )
         {
-            xplMsgItem const* pItem = *iter;
+            AutoPtr<XplMsgItem>  pItem = *iter;
             for ( int i=0; i<pItem->GetNumValues(); ++i )
             {
-                //sprintf( &m_pBuffer[strlen(m_pBuffer)], "%s=%s\n", pItem->GetName().c_str(), pItem->GetValue( i ).c_str() );
                 msgstream << pItem->GetName() << "=" << pItem->GetValue ( i ) << "\n";
             }
         }
-
-        // 		strcat( m_pBuffer, "}\n" );
         msgstream <<"}\n";
         m_raw = msgstream.str();;
     }
@@ -272,11 +250,11 @@ string xplMsg::GetRawData( )
 
 /***************************************************************************
 ****																	****
-****	xplMsg::AddValue												****
+****	XplMsg::AddValue												****
 ****																	****
 ***************************************************************************/
 
-void xplMsg::AddValue
+void XplMsg::AddValue
 (
     string const& _name,
     string const& _value,
@@ -285,11 +263,11 @@ void xplMsg::AddValue
 {
     InvalidateRawData();
 
-    xplMsgItem* pItem;
+    XplMsgItem* pItem;
 
-    // See if there is already an existing xplMsgItem with this name
-    string lowerName = StringToLower ( _name );
-    vector<xplMsgItem*>::iterator iter;
+    // See if there is already an existing XplMsgItem with this name
+    string lowerName = toLower ( _name );
+    vector<AutoPtr<XplMsgItem> >::iterator iter;
     for ( iter = m_msgItems.begin(); iter != m_msgItems.end(); ++iter )
     {
         if ( _name == ( *iter )->GetName() )
@@ -306,8 +284,8 @@ void xplMsg::AddValue
     }
     else
     {
-        // Create a new xplMsgItem
-        pItem = new xplMsgItem ( lowerName );
+        // Create a new XplMsgItem
+        pItem = new XplMsgItem ( lowerName );
         m_msgItems.push_back ( pItem );
     }
 
@@ -317,11 +295,11 @@ void xplMsg::AddValue
 
 /***************************************************************************
 ****																	****
-****	xplMsg::AddValue												****
+****	XplMsg::AddValue												****
 ****																	****
 ***************************************************************************/
 
-void xplMsg::AddValue
+void XplMsg::AddValue
 (
     string const& _name,
     int32 const _value
@@ -335,11 +313,11 @@ void xplMsg::AddValue
 
 /***************************************************************************
 ****																	****
-****	xplMsg::SetValue												****
+****	XplMsg::SetValue												****
 ****																	****
 ***************************************************************************/
 
-bool xplMsg::SetValue
+bool XplMsg::SetValue
 (
     string const& _name,
     string const& _value,
@@ -348,8 +326,8 @@ bool xplMsg::SetValue
 {
     InvalidateRawData();
 
-    // Find the xplMsgItem with this name
-    for ( vector<xplMsgItem*>::iterator iter = m_msgItems.begin();  iter != m_msgItems.end(); ++iter )
+    // Find the XplMsgItem with this name
+    for ( vector<AutoPtr<XplMsgItem> >::iterator iter = m_msgItems.begin();  iter != m_msgItems.end(); ++iter )
     {
         if ( _name == ( *iter )->GetName() )
         {
@@ -364,17 +342,17 @@ bool xplMsg::SetValue
 
 /***************************************************************************
 ****																	****
-****	xplMsg::GetMsgItem												****
+****	XplMsg::GetMsgItem												****
 ****																	****
 ***************************************************************************/
 
-xplMsgItem const* xplMsg::GetMsgItem
+AutoPtr<XplMsgItem>  XplMsg::GetMsgItem
 (
     string const& _name
 ) const
 {
-    string lowerName = StringToLower ( _name );
-    for ( vector<xplMsgItem*>::const_iterator iter = m_msgItems.begin();  iter != m_msgItems.end(); ++iter )
+    string lowerName = toLower ( _name );
+    for ( vector<AutoPtr<XplMsgItem> >::const_iterator iter = m_msgItems.begin();  iter != m_msgItems.end(); ++iter )
     {
         if ( lowerName == ( *iter )->GetName() )
         {
@@ -390,11 +368,11 @@ xplMsgItem const* xplMsg::GetMsgItem
 
 /***************************************************************************
 ****																	****
-****	xplMsg::GetMsgItem												****
+****	XplMsg::GetMsgItem												****
 ****																	****
 ***************************************************************************/
 
-xplMsgItem const* xplMsg::GetMsgItem
+AutoPtr<XplMsgItem>  XplMsg::GetMsgItem
 (
     uint32 const _index
 ) const
@@ -412,19 +390,19 @@ xplMsgItem const* xplMsg::GetMsgItem
 
 /***************************************************************************
 ****																	****
-****	xplMsg::GetValue												****
+****	XplMsg::GetValue												****
 ****																	****
 ***************************************************************************/
 
-string const xplMsg::GetValue
+string const XplMsg::GetValue
 (
     string const& _name,
     uint32 const _index /*=0*/
 ) const
 {
-    if ( xplMsgItem const* pMsgItem = GetMsgItem ( _name ) )
+    if ( XplMsgItem const* pMsgItem = GetMsgItem ( _name ) )
     {
-        // Get the value from the  xplMsgItem object
+        // Get the value from the  XplMsgItem object
         return ( pMsgItem->GetValue ( _index ) );
     }
 
@@ -435,11 +413,11 @@ string const xplMsg::GetValue
 
 /***************************************************************************
 ****																	****
-****	xplMsg::GetIntValue												****
+****	XplMsg::GetIntValue												****
 ****																	****
 ***************************************************************************/
 
-int const xplMsg::GetIntValue
+int const XplMsg::GetIntValue
 (
     string const& _name,
     uint32 const _index /*=0*/
@@ -458,20 +436,20 @@ int const xplMsg::GetIntValue
 
 /***************************************************************************
 ****																	****
-****	xplMsg::GetCompleteValue										****
+****	XplMsg::GetCompleteValue										****
 ****																	****
 ***************************************************************************/
 
-string const xplMsg::GetCompleteValue
+string const XplMsg::GetCompleteValue
 (
     string const& _name,
     char const _delimiter /* = ',' */
 ) const
 {
     string str;
-    if ( xplMsgItem const* pMsgItem = GetMsgItem ( _name ) )
+    if ( XplMsgItem const* pMsgItem = GetMsgItem ( _name ) )
     {
-        // Get the values from the xplMsgItem object
+        // Get the values from the XplMsgItem object
         for ( int i=0; i<pMsgItem->GetNumValues(); ++i )
         {
             if ( i )
@@ -488,11 +466,11 @@ string const xplMsg::GetCompleteValue
 
 /***************************************************************************
 ****																	****
-****	xplMsg::SetHop													****
+****	XplMsg::SetHop													****
 ****																	****
 ***************************************************************************/
 
-bool xplMsg::SetHop
+bool XplMsg::SetHop
 (
     uint32 _hop
 )
@@ -513,20 +491,20 @@ bool xplMsg::SetHop
 
 /***************************************************************************
 ****																	****
-****	xplMsg::SetType													****
+****	XplMsg::SetType													****
 ****																	****
 ***************************************************************************/
 
-bool xplMsg::SetType
+bool XplMsg::SetType
 (
     string const& _type
 )
 {
     InvalidateRawData();
 
-    string lowerType = StringToLower ( _type );
+    string lowerType = toLower ( _type );
 
-    //in case we've forgotten it...
+    //in case we've forgotten the leading bit...
     if ( lowerType.size() ==4 )
     {
         lowerType = "xpl-" + lowerType;
@@ -548,11 +526,11 @@ bool xplMsg::SetType
 
 /***************************************************************************
 ****																	****
-****	xplMsg::SetSource												****
+****	XplMsg::SetSource												****
 ****																	****
 ***************************************************************************/
 
-bool xplMsg::SetSource
+bool XplMsg::SetSource
 (
     string const& _source
 )
@@ -566,8 +544,7 @@ bool xplMsg::SetSource
 
     if ( ( vendor.size() > 8 ) || vendor.empty() || deviceInstance.empty() )
     {
-        cout << "failing on source: " << _source << "\n";
-        assert ( 0 );
+        Logger::get ( "xplsdk.comms" ).warning("Invalid xPl source: " + _source);
         return false;
     }
     m_source.vendor = vendor;
@@ -582,13 +559,13 @@ bool xplMsg::SetSource
         return false;
     }
 
-    m_source.device = device;
-    m_source.instance = instance;
-    //TODO lowercaser
+    m_source.device = toLower(device);
+    m_source.instance = toLower(instance);
+    
     return true;
 }
 
-bool xplMsg::SetSource
+bool XplMsg::SetSource
 (
     XPLAddress const& _source
 )
@@ -601,11 +578,11 @@ bool xplMsg::SetSource
 
 /***************************************************************************
 ****																	****
-****	xplMsg::SetTarget												****
+****	XplMsg::SetTarget												****
 ****																	****
 ***************************************************************************/
 
-bool xplMsg::SetTarget
+bool XplMsg::SetTarget
 (
     string const& _target
 )
@@ -636,7 +613,7 @@ bool xplMsg::SetTarget
     }
     if ( vendor.size() > 8 )
     {
-        cout << "Vendor: " << vendor << " is out of spec\n";
+        Logger::get ( "xplsdk.comms" ).warning("Invalid xPl vendor: " + vendor);
     }
     m_target.vendor = vendor;
 
@@ -646,16 +623,16 @@ bool xplMsg::SetTarget
 
     if ( ( device.size() > 8 ) || device.empty() || ( instance.size() > 16 ) || instance.empty() )
     {
+        Logger::get ( "xplsdk.comms" ).warning("Invalid xPl dest: " + device);
         assert ( 0 );
         return false;
     }
-    m_target.device = device;
-    m_target.instance = instance;
+    m_source.device = toLower(device);
+    m_source.instance = toLower(instance);
     return true;
-    //TODO lowercaser
 }
 
-bool xplMsg::SetTarget
+bool XplMsg::SetTarget
 (
     XPLAddress const& _target
 )
@@ -668,11 +645,11 @@ bool xplMsg::SetTarget
 
 /***************************************************************************
 ****																	****
-****	xplMsg::SetSchemaClass											****
+****	XplMsg::SetSchemaClass											****
 ****																	****
 ***************************************************************************/
 
-bool xplMsg::SetSchemaClass
+bool XplMsg::SetSchemaClass
 (
     string const& _schemaClass
 )
@@ -686,18 +663,18 @@ bool xplMsg::SetSchemaClass
         return false;
     }
 
-    m_schemaClass = StringToLower ( _schemaClass );
+    m_schemaClass = toLower ( _schemaClass );
     return true;
 }
 
 
 /***************************************************************************
 ****																	****
-****	xplMsg::SetSchemaType											****
+****	XplMsg::SetSchemaType											****
 ****																	****
 ***************************************************************************/
 
-bool xplMsg::SetSchemaType
+bool XplMsg::SetSchemaType
 (
     string const& _schemaType
 )
@@ -711,18 +688,18 @@ bool xplMsg::SetSchemaType
         return false;
     }
 
-    m_schemaType = StringToLower ( _schemaType );
+    m_schemaType = toLower ( _schemaType );
     return true;
 }
 
 
 /***************************************************************************
 ****																	****
-****	xplMsg::ReadNameValuePair										****
+****	XplMsg::ReadNameValuePair										****
 ****																	****
 ***************************************************************************/
 
-int32 xplMsg::ReadNameValuePair
+int32 XplMsg::ReadNameValuePair
 (
     string const& _str,
     int32 const _start,
@@ -748,11 +725,11 @@ int32 xplMsg::ReadNameValuePair
 
 /***************************************************************************
 ****																	****
-****	xplMsg::InvalidateRawData										****
+****	XplMsg::InvalidateRawData										****
 ****																	****
 ***************************************************************************/
 
-void xplMsg::InvalidateRawData()
+void XplMsg::InvalidateRawData()
 {
     m_raw = "";
 }
@@ -760,13 +737,13 @@ void xplMsg::InvalidateRawData()
 
 /***************************************************************************
 ****																	****
-****	xplMsg::operator ==												****
+****	XplMsg::operator ==												****
 ****																	****
 ***************************************************************************/
 
-bool xplMsg::operator ==
+bool XplMsg::operator ==
 (
-    xplMsg const& _rhs
+    XplMsg const& _rhs
 )
 {
     string pMsgDataLHS = GetRawData();
@@ -774,7 +751,7 @@ bool xplMsg::operator ==
     // I know this is pure evil, but all we are doing is filling the
     // raw data cache, and we do not modify the actual xPL message.
 
-    xplMsg* pNonConstRHS = const_cast<xplMsg*> ( &_rhs );
+    XplMsg* pNonConstRHS = const_cast<XplMsg*> ( &_rhs );
 
     string pMsgDataRHS = pNonConstRHS->GetRawData( );
 

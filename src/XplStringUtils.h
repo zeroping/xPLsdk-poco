@@ -40,7 +40,7 @@
 //#include <tchar.h> - not in linux
 #include <stdio.h>
 #include <string.h>
-#include "xplCore.h"
+#include "XplCore.h"
 
 namespace xpl
 {
@@ -74,65 +74,6 @@ uint32 StringReadLine ( string const& _str, uint32 const _start, string* _pLine 
  */
 bool StringSplit ( string const& _source, char const _delim, string* _pLeftStr, string* _pRightStr );
 
-/**
- * Removes whitespace from around the string.
- * Removes whitespace characters (spaces, tabs and newlines) from both the start
- * and end of the string.
- * @param _str string to be trimmed
- * @return A string containing the text with leading and trailing whitespace
- * removed
- */
-string	StringTrim ( string const& _str );
-
-/**
- * Converts a string to all lower case
- * @param _str the string to be converted.
- * @return A string containing the lower case version of the one passed in.
- * @see StringToUpper
- */
-string	StringToLower ( string const& _str );
-
-/**
- * Converts a string to all upper case
- * @param _str the string to be converted.
- * @return A string containing the upper case version of the one passed in.
- * @see StringToLower
- */
-string	StringToUpper ( string const& _str );
-
-/**
- * Converts a float to a string
- * @param _f the float to be converted.
- * @param _places the number of decimal places to show.
- * @param _bTrim when true, trailing zeros are removed (so the number of decimal places may be lower than specified).
- * @return A string containing a text version of the float.
- * @see StringToLower
- */
-string	StringFromFloat ( float _f, uint32 _places, bool _bTrim = false );
-
-#ifdef UNICODE
-
-// PocketPC and Windows MCE plugins use unicode - some functions (like CreateFile) require
-// that string arguments to be converted to unicode first.
-class UnicodeString
-{
-public:
-    UnicodeString ( char const* _asciiString );
-    ~UnicodeString()
-    {
-        delete [] m_pBuffer;
-    }
-
-    uint16* c_str()
-    {
-        return m_pBuffer;
-    }
-
-private:
-    uint16*	m_pBuffer;
-};
-
-#endif // #ifdef UNICODE
 
 } // namespace xpl
 

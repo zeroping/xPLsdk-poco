@@ -1,6 +1,6 @@
 /***************************************************************************
 ****																	****
-****	xplDevice.cpp													****
+****	XplDevice.cpp													****
 ****																	****
 ****	xPL Communications												****
 ****																	****
@@ -33,110 +33,42 @@
 
 // #include <Assert.h> - not on linux
 // #include <tchar.h> - not on linux
-#include "xplDevice.h"
-#include "xplCore.h"
-#include "xplStringUtils.h"
-#include "xplComms.h"
-#include "xplMsg.h"
+#include "XplDevice.h"
+#include "XplCore.h"
+#include "XplStringUtils.h"
+#include "XplComms.h"
+#include "XplMsg.h"
 #include "xplFilter.h"
-#include "xplConfigItem.h"
+#include "XplConfigItem.h"
+
 #include <strings.h>
+#include <Poco/String.h>
 
 using namespace xpl;
+using Poco::toLower;
 
-string const xplDevice::c_xplGroup = "xpl-group";
+string const XplDevice::c_xplGroup = "xpl-group";
 
-uint32 const xplDevice::c_rapidHeartbeatFastInterval = 3;	// Three seconds for the first
-uint32 const xplDevice::c_rapidHeartbeatTimeout = 120;		// two minutes, after which the rate drops to
-uint32 const xplDevice::c_rapidHeartbeatSlowInterval = 30;	// once every thirty seconds.
+uint32 const XplDevice::c_rapidHeartbeatFastInterval = 3;	// Three seconds for the first
+uint32 const XplDevice::c_rapidHeartbeatTimeout = 120;		// two minutes, after which the rate drops to
+uint32 const XplDevice::c_rapidHeartbeatSlowInterval = 30;	// once every thirty seconds.
 
-
-/***************************************************************************
-****																	****
-****	xplDevice::Create												****
-****																	****
-***************************************************************************/
-
-// xplDevice* xplDevice::Create
-// (
-// 	string const& _vendorId,
-// 	string const& _deviceId,
-// 	string const& _version,
-// 	bool const _configInRegistry,
-// 	bool const _bFilterMsgs,
-// 	xplComms* _pComms
-// )
-// {
-// 	if( NULL == _pComms )
-// 	{
-// 		assert(0);
-// 		return NULL;
-// 	}
-//
-// 	// Create a new xplDevice
-// 	xplDevice* pDevice = new xplDevice( _vendorId, _deviceId, _version, _configInRegistry, _bFilterMsgs, _pComms );
-//
-// 	// Add the configurable items
-// 	xplConfigItem* pItem;
-//
-// 	pItem = new xplConfigItem( "newconf", "reconf" );
-// 	pItem->AddValue( "default" );
-// 	pDevice->AddConfigItem( pItem );
-//
-// 	pItem = new xplConfigItem( "interval", "reconf" );
-// 	pItem->AddValue( "5" );
-// 	pDevice->AddConfigItem( pItem );
-//
-// 	pItem = new xplConfigItem( "group", "option", 16 );
-// 	pDevice->AddConfigItem( pItem );
-//
-// 	pItem = new xplConfigItem( "filter", "option", 16 );
-// 	pDevice->AddConfigItem( pItem );
-//
-// 	return( pDevice );
-// }
 
 
 /***************************************************************************
 ****																	****
-****	xplDevice::Destroy												****
-****																	****
-***************************************************************************/
-/*
-void xplDevice::Destroy
-(
-	xplDevice* _pDevice
-)
-{
-	if( NULL == _pDevice )
-	{
-    cout << "device already destroyed\n";
-		assert(0);
-		return;
-	}
-
-// 	cout << "deiniting device in thread " << Thread::currentTid() << " \n";
-	_pDevice->Deinit();
-//   cout << "deleting device in thread " << Thread::currentTid() << " \n";
-	delete _pDevice;
-//   cout << "deleted device in thread " << Thread::currentTid() << " \n";
-}*/
-
-
-/***************************************************************************
-****																	****
-****	xplDevice constructor											****
+****	XplDevice constructor											****
 ****																	****
 ***************************************************************************/
 
-xplDevice::xplDevice
+XplDevice::XplDevice
 (
     string const& _vendorId,
     string const& _deviceId,
     string const& _version,
     bool const _bConfigInRegistry,
     bool const _bFilterMsgs,
-    xplComms* _pComms
+    XplComms* _pComms
 ) :
     m_version ( _version ),
     m_bConfigInRegistry ( _bConfigInRegistry ),
@@ -153,13 +85,15 @@ xplDevice::xplDevice
     devLog ( Logger::get ( "xplsdk.device" ) )
 
 {
-    assert ( m_pComms );
+    devLog.setLevel ("trace");
+//     Logger::setLevel("xplsdk.device", Message::PRIO_TRACE  );
+    assert ( devLog.trace() );
 
-    m_vendorId = StringToLower ( _vendorId );
-    m_deviceId = StringToLower ( _deviceId );
+    m_vendorId = toLower ( _vendorId );
+    m_deviceId = toLower ( _deviceId );
     m_instanceId = "default";
 
-    devLog.setLevel (Message::PRIO_TRACE  );
+    
     
     SetCompleteId();
 
@@ -170,13 +104,13 @@ xplDevice::xplDevice
 
 /***************************************************************************
 ****																	****
-****	xplDevice::~xplDevice											****
+****	XplDevice::~XplDevice											****
 ****																	****
 ***************************************************************************/
 
-xplDevice::~xplDevice ( void )
+XplDevice::~XplDevice ( void )
 {
-//     cout << "destroying xpldevice\n";
+     cout << "destroying XplDevice\n";
     if ( m_bInitialised )
     {
         m_bExitThread = true;
@@ -198,21 +132,21 @@ xplDevice::~xplDevice ( void )
     }
 
     //Delete the config items
-    for ( int i=0; i<m_configItems.size(); ++i )
-    {
-        delete m_configItems[i];
-    }
+//     for ( int i=0; i<m_configItems.size(); ++i )
+//     {
+//         delete m_configItems[i];
+//     }
     delete m_hRxInterrupt ;
 }
 
 
 /***************************************************************************
 ****																	****
-****	xplDevice::Init													****
+****	XplDevice::Init													****
 ****																	****
 ***************************************************************************/
 
-bool xplDevice::Init()
+bool XplDevice::Init()
 {
     if ( m_bInitialised )
     {
@@ -231,7 +165,7 @@ bool xplDevice::Init()
     m_hThread.start ( *this );
 
     //register to get all the rxed messages from the comms
-    m_pComms->rxNotificationCenter.addObserver ( Observer<xplDevice, MessageRxNotification> ( *this,&xplDevice::HandleRx ) );
+    m_pComms->rxNotificationCenter.addObserver ( Observer<XplDevice, MessageRxNotification> ( *this,&XplDevice::HandleRx ) );
 
     return true;
 }
@@ -240,12 +174,14 @@ bool xplDevice::Init()
 
 /***************************************************************************
 ****																	****
-****	xplDevice::LoadConfig											****
+****	XplDevice::LoadConfig											****
 ****																	****
 ***************************************************************************/
 
-void xplDevice::LoadConfig()
+void XplDevice::LoadConfig()
 {
+    
+    poco_trace ( devLog, "loading config for  "  + GetCompleteId() );
 // 	m_bConfigRequired = true;
 //
 // 	if( m_bConfigInRegistry )
@@ -291,7 +227,7 @@ void xplDevice::LoadConfig()
 // 			// Read the config values from the key
 // 			for( uint32 i=0; i<m_configItems.size(); ++i )
 // 			{
-// 				xplConfigItem* pItem = m_configItems[i];
+// 				XplConfigItem* pItem = m_configItems[i];
 // 				pItem->RegistryLoad( hKey );
 // 			}
 //
@@ -344,7 +280,7 @@ void xplDevice::LoadConfig()
 // 			// Read the config items
 // 			for( uint32 i=0; i<m_configItems.size(); ++i )
 // 			{
-// 				xplConfigItem* pItem = m_configItems[i];
+// 				XplConfigItem* pItem = m_configItems[i];
 //         pItem->FileLoad( myhfile );
 // 			}
 //
@@ -356,7 +292,7 @@ void xplDevice::LoadConfig()
 // 	// If the config data was read ok, then configure this device.
 // 	if( !m_bConfigRequired )
 // 	{
-//         // Configure the xplDevice
+//         // Configure the XplDevice
 //         Configure();
 // 		m_bConfigRequired = false;
 //
@@ -369,12 +305,13 @@ void xplDevice::LoadConfig()
 
 /***************************************************************************
 ****																	****
-****	xplDevice::SaveConfig											****
+****	XplDevice::SaveConfig											****
 ****																	****
 ***************************************************************************/
 
-void xplDevice::SaveConfig() const
+void XplDevice::SaveConfig() const
 {
+    poco_debug ( devLog, "saving config for  " + GetCompleteId() );
 // 	if( m_bConfigInRegistry )
 // 	{
 // 		// Attempt to open the registry key for this
@@ -416,7 +353,7 @@ void xplDevice::SaveConfig() const
 // 			// Store the config values in the key
 // 			for( uint32 i=0; i<m_configItems.size(); ++i )
 // 			{
-// 				xplConfigItem* pItem = m_configItems[i];
+// 				XplConfigItem* pItem = m_configItems[i];
 // 				pItem->RegistrySave( hKey );
 // 			}
 //
@@ -449,7 +386,7 @@ void xplDevice::SaveConfig() const
 //
 // 			for( uint32 i=0; i<m_configItems.size(); ++i )
 // 			{
-// 				xplConfigItem* pItem = m_configItems[i];
+// 				XplConfigItem* pItem = m_configItems[i];
 // 				pItem->FileSave( hFile );
 // 			}
 //
@@ -461,14 +398,15 @@ void xplDevice::SaveConfig() const
 
 /***************************************************************************
 ****																	****
-****	xplDevice::Configure											****
+****	XplDevice::Configure											****
 ****																	****
 ***************************************************************************/
 
-void xplDevice::Configure()
+void XplDevice::Configure()
 {
+    poco_debug ( devLog, "Configuring  " + GetCompleteId() );
     // Set the device instance
-    xplConfigItem const* pItem;
+    XplConfigItem const* pItem;
 
     pItem = GetConfigItem ( "newconf" );
     if ( pItem )
@@ -519,16 +457,18 @@ void xplDevice::Configure()
 
 /***************************************************************************
 ****																	****
-****	xplDevice::AddConfigItem										****
+****	XplDevice::AddConfigItem										****
 ****																	****
 ***************************************************************************/
 
-bool xplDevice::AddConfigItem
+bool XplDevice::AddConfigItem
 (
-    xplConfigItem* _pItem
+    AutoPtr<XplConfigItem> _pItem
 )
 {
-    // Config items may only be added before xplDevice::Init() is called
+    poco_debug ( devLog, "DAdding config item to "  + GetCompleteId() + ": " + _pItem->GetName() + " = " + _pItem->GetValue());
+    
+    // Config items may only be added before XplDevice::Init() is called
     if ( m_bInitialised )
     {
         assert ( 0 );
@@ -551,21 +491,22 @@ bool xplDevice::AddConfigItem
 
 /***************************************************************************
 ****																	****
-****	xplDevice::RemoveConfigItem										****
+****	XplDevice::RemoveConfigItem										****
 ****																	****
 ***************************************************************************/
 
-bool xplDevice::RemoveConfigItem
+bool XplDevice::RemoveConfigItem
 (
     string const& _name
 )
 {
-    for ( vector<xplConfigItem*>::iterator iter = m_configItems.begin(); iter != m_configItems.end(); ++iter )
+    poco_debug ( devLog, "removing config item for "  + GetCompleteId() + ": " + _name );
+    for ( vector< AutoPtr<XplConfigItem> >::iterator iter = m_configItems.begin(); iter != m_configItems.end(); ++iter )
     {
         if ( ( *iter )->GetName() == _name )
         {
             // Found
-            delete *iter;
+//             delete *iter;
             m_configItems.erase ( iter );
             return true;
         }
@@ -578,16 +519,16 @@ bool xplDevice::RemoveConfigItem
 
 /***************************************************************************
 ****																	****
-****	xplDevice::GetConfigItem										****
+****	XplDevice::GetConfigItem										****
 ****																	****
 ***************************************************************************/
 
-xplConfigItem const* xplDevice::GetConfigItem
+AutoPtr<XplConfigItem> XplDevice::GetConfigItem
 (
     string const& _name
 ) const
 {
-    for ( vector<xplConfigItem*>::const_iterator iter = m_configItems.begin(); iter != m_configItems.end(); ++iter )
+    for ( vector< AutoPtr<XplConfigItem> >::const_iterator iter = m_configItems.begin(); iter != m_configItems.end(); ++iter )
     {
         if ( ( *iter )->GetName() == _name )
         {
@@ -600,11 +541,11 @@ xplConfigItem const* xplDevice::GetConfigItem
 }
 
 
-// void xplDevice::addRXObserver ( Observer(C& object, Callback method) arg1) {
+// void XplDevice::addRXObserver ( Observer(C& object, Callback method) arg1) {
 //     rxTaskManager.addObserver(arg1);
 // }
 
-// void xplDevice::addDeviceConfigObserver ( Observer< typename tname,  typename notname >arg1 ) {
+// void XplDevice::addDeviceConfigObserver ( Observer< typename tname,  typename notname >arg1 ) {
 //     configTaskManager.addObserver(arg1);
 // }
 
@@ -612,13 +553,13 @@ xplConfigItem const* xplDevice::GetConfigItem
 
 /***************************************************************************
 ****																	****
-****	xplDevice::IsMsgForThisApp										****
+****	XplDevice::IsMsgForThisApp										****
 ****																	****
 ***************************************************************************/
 
-bool xplDevice::IsMsgForThisApp
+bool XplDevice::IsMsgForThisApp
 (
-    xplMsg* _pMsg
+    XplMsg* _pMsg
 )
 {
     // Reject any messages that were originally broadcast by us
@@ -656,7 +597,7 @@ bool xplDevice::IsMsgForThisApp
             }
 
             // Target is a group - but does this device belong to it?
-            xplConfigItem const* pItem = GetConfigItem ( "group" );
+            XplConfigItem const* pItem = GetConfigItem ( "group" );
             if ( NULL == pItem )
             {
                 // No groups item
@@ -703,11 +644,11 @@ bool xplDevice::IsMsgForThisApp
 
 /***************************************************************************
 ****																	****
-****	xplDevice::SetNextHeartbeatTime									****
+****	XplDevice::SetNextHeartbeatTime									****
 ****																	****
 ***************************************************************************/
 
-void xplDevice::SetNextHeartbeatTime()
+void XplDevice::SetNextHeartbeatTime()
 {
     // Set the new heartbeat time
     int64_t currentTime;
@@ -756,23 +697,23 @@ void xplDevice::SetNextHeartbeatTime()
 
 /***************************************************************************
 ****																	****
-****	xplDevice::HandleMsgForUs											****
+****	XplDevice::HandleMsgForUs											****
 ****																	****
 ***************************************************************************/
 
-bool xplDevice::HandleMsgForUs
+bool XplDevice::HandleMsgForUs
 (
-    xplMsg* _pMsg
+    XplMsg* _pMsg
 )
 {
-    if ( _pMsg->GetType() == xplMsg::c_xplCmnd )
+    if ( _pMsg->GetType() == XplMsg::c_xplCmnd )
     {
         if ( "config" == _pMsg->GetSchemaClass() )
         {
             if ( "current" == _pMsg->GetSchemaType() )
             {
                 // Config values request
-                if ( "request" == StringToLower ( _pMsg->GetValue ( "command" ) ) )
+                if ( "request" == toLower ( _pMsg->GetValue ( "command" ) ) )
                 {
                     SendConfigCurrent();
                     return true;
@@ -781,7 +722,7 @@ bool xplDevice::HandleMsgForUs
             else if ( "list" == _pMsg->GetSchemaType() )
             {
                 // Config list request
-                if ( string ( "request" ) == StringToLower ( _pMsg->GetValue ( "command" ) ) )
+                if ( string ( "request" ) == toLower ( _pMsg->GetValue ( "command" ) ) )
                 {
                     SendConfigList();
                     return true;
@@ -793,11 +734,11 @@ bool xplDevice::HandleMsgForUs
                 for ( i=0; i<m_configItems.size(); ++i )
                 {
                     // Clear the existing config item values
-                    xplConfigItem* pItem = m_configItems[i];
+                    XplConfigItem* pItem = m_configItems[i];
                     pItem->ClearValues();
 
                     // Copy all the new values from the message into the config item
-                    xplMsgItem const* pValues = _pMsg->GetMsgItem ( pItem->GetName() );
+                    XplMsgItem const* pValues = _pMsg->GetMsgItem ( pItem->GetName() );
                     if ( NULL != pValues )
                     {
                         for ( uint32 j=0; j<pValues->GetNumValues(); ++j )
@@ -811,7 +752,7 @@ bool xplDevice::HandleMsgForUs
                     }
                 }
 
-                // Configure the xplDevice
+                // Configure the XplDevice
                 Configure();
 
                 // Save configuration
@@ -860,7 +801,7 @@ bool xplDevice::HandleMsgForUs
 
 /***************************************************************************
 ****																	****
-****	xplDevice::SendConfigList										****
+****	XplDevice::SendConfigList										****
 ****																	****
 ****																	****
 ****	xpl-stat														****
@@ -880,15 +821,15 @@ bool xplDevice::HandleMsgForUs
 ****																	****
 ***************************************************************************/
 
-void xplDevice::SendConfigList() const
+void XplDevice::SendConfigList() const
 {
-    AutoPtr<xplMsg> pMsg = new xplMsg ( xplMsg::c_xplStat, m_completeId, "*", "config", "list" );
+    AutoPtr<XplMsg> pMsg = new XplMsg ( XplMsg::c_xplStat, m_completeId, "*", "config", "list" );
 
     if ( pMsg )
     {
         for ( uint32 i=0; i<m_configItems.size(); ++i )
         {
-            xplConfigItem* pItem = m_configItems[i];
+            AutoPtr<XplConfigItem> pItem = m_configItems[i];
             if ( pItem->GetMaxValues() > 1 )
             {
                 // Use the array notation if there can be more than one value assigned
@@ -902,8 +843,8 @@ void xplDevice::SendConfigList() const
             }
         }
 
-        // Call xplComms::TxMsg directly, since we may be in config mode
-        // and xplDevice::SendMessage would block it.
+        // Call XplComms::TxMsg directly, since we may be in config mode
+        // and XplDevice::SendMessage would block it.
         m_pComms->TxMsg ( *pMsg );
 
     }
@@ -912,7 +853,7 @@ void xplDevice::SendConfigList() const
 
 /***************************************************************************
 ****																	****
-****	xplDevice::SendConfigCurrent									****
+****	XplDevice::SendConfigCurrent									****
 ****																	****
 ****																	****
 ****	xpl-stat														****
@@ -932,23 +873,23 @@ void xplDevice::SendConfigList() const
 ****																	****
 ***************************************************************************/
 
-void xplDevice::SendConfigCurrent() const
+void XplDevice::SendConfigCurrent() const
 {
-    AutoPtr<xplMsg> pMsg = new xplMsg ( xplMsg::c_xplStat, m_completeId, "*", "config", "current" );
+    AutoPtr<XplMsg> pMsg = new XplMsg ( XplMsg::c_xplStat, m_completeId, "*", "config", "current" );
 
     if ( pMsg )
     {
         for ( uint32 i=0; i<m_configItems.size(); ++i )
         {
-            xplConfigItem* pItem = m_configItems[i];
+            AutoPtr<XplConfigItem> pItem = m_configItems[i];
             for ( uint32 j=0; j<pItem->GetNumValues(); ++j )
             {
                 pMsg->AddValue ( pItem->GetName(), pItem->GetValue ( j ) );
             }
         }
 
-        // Call xplComms::TxMsg directly, since we may be in config mode
-        // and xplDevice::SendMessage would block it.
+        // Call XplComms::TxMsg directly, since we may be in config mode
+        // and XplDevice::SendMessage would block it.
         m_pComms->TxMsg ( *pMsg );
 
     }
@@ -957,16 +898,16 @@ void xplDevice::SendConfigCurrent() const
 
 /***************************************************************************
 ****																	****
-****	xplDevice::SendMsg												****
+****	XplDevice::SendMsg												****
 ****																	****
 ***************************************************************************/
 
-bool xplDevice::SendMsg
+bool XplDevice::SendMsg
 (
-    xplMsg* _pMsg
+    XplMsg* _pMsg
 )
 {
-    // Code outside of xplDevice cannot send messages until
+    // Code outside of XplDevice cannot send messages until
     // the application has been configured.
     if ( m_bConfigRequired )
     {
@@ -997,13 +938,13 @@ bool xplDevice::SendMsg
 
 // /***************************************************************************
 // ****																	****
-// ****	xplDevice::GetMsg												****
+// ****	XplDevice::GetMsg												****
 // ****																	****
 // ***************************************************************************/
 //
-// xplMsg* xplDevice::GetMsg()
+// XplMsg* XplDevice::GetMsg()
 // {
-// 	xplMsg* pMsg = NULL;
+// 	XplMsg* pMsg = NULL;
 //
 // 	// If there are any messages in the buffer, remove the first one
 //     // and return it to the caller.
@@ -1032,23 +973,23 @@ bool xplDevice::SendMsg
 
 /***************************************************************************
 ****																	****
-****	xplDevice::SetCompleteId										****
+****	XplDevice::SetCompleteId										****
 ****																	****
 ***************************************************************************/
 
-void xplDevice::SetCompleteId()
+void XplDevice::SetCompleteId()
 {
-    m_completeId = StringToLower ( m_vendorId + string ( "-" ) + m_deviceId + string ( "." ) + m_instanceId );
+    m_completeId = toLower ( m_vendorId + string ( "-" ) + m_deviceId + string ( "." ) + m_instanceId );
 }
 
 
 /***************************************************************************
 ****																	****
-****	xplDevice::Run													****
+****	XplDevice::Run													****
 ****																	****
 ***************************************************************************/
 
-void xplDevice::run ( void )
+void XplDevice::run ( void )
 {
     if ( !m_bInitialised )
     {
@@ -1067,7 +1008,7 @@ void xplDevice::run ( void )
         
         if ( m_nextHeartbeat <= currentTime )
         {
-            poco_debug( commsLog, "Sending heartbeat" );
+            poco_debug( devLog, "Sending heartbeat" );
             // It is time to send a heartbeat
             if ( m_bConfigRequired )
             {
@@ -1095,10 +1036,10 @@ void xplDevice::run ( void )
 }
 
 
-void xplDevice::HandleRx ( MessageRxNotification* mNot )
+void XplDevice::HandleRx ( MessageRxNotification* mNot )
 {
 //         cout << "device: start handle RX in thread " << Thread::currentTid() <<"\n";
-    AutoPtr<xplMsg> pMsg = mNot->message;
+    AutoPtr<XplMsg> pMsg = mNot->message;
 //    Process any xpl message received
     if ( NULL != pMsg )
     {
@@ -1136,12 +1077,12 @@ void xplDevice::HandleRx ( MessageRxNotification* mNot )
 ****																	****
 ***************************************************************************/
 
-bool xplDevice::DeviceThread
+bool XplDevice::DeviceThread
 (
     void* _lpArg
 )
 {
-    xplDevice* pDevice = ( xplDevice* ) _lpArg;
+    XplDevice* pDevice = ( XplDevice* ) _lpArg;
     pDevice->run();
     return ( 0 );
 }

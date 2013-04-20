@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include "xplCore.h"
+#include "XplCore.h"
 
 namespace xpl
 {

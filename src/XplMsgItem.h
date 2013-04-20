@@ -1,6 +1,6 @@
 /***************************************************************************
 ****																	****
-****	xplMsgItem.h	 												****
+****	XplMsgItem.h	 												****
 ****																	****
 ****	Represents a name=value pair from an xPL Message				****
 ****																	****
@@ -33,23 +33,27 @@
 
 #pragma once
 
-#ifndef _xplMsgItem_H
-#define _xplMsgItem_H
+#ifndef _XplMsgItem_H
+#define _XplMsgItem_H
 
 #include <string>
 #include <vector>
-#include "xplCore.h"
+#include "XplCore.h"
+
+#include "Poco/RefCountedObject.h"
+
+using namespace Poco;
 
 namespace xpl
 {
 
 /**
  * Represents name=value pairs in an xPL message body.
- * An xplMsg object will contain one xplMsgItem for each unique name in its
+ * An XplMsg object will contain one XplMsgItem for each unique name in its
  * list of name=value pairs.  Where there are multiple name=value pairs
- * using the same name, the xplMsgItem will contain all the values.
+ * using the same name, the XplMsgItem will contain all the values.
  */
-class xplMsgItem
+class XplMsgItem: public RefCountedObject
 {
 public:
     /**
@@ -57,12 +61,8 @@ public:
      * @param _name name of the name=value pairs that will be stored
      * in this item.
      */
-    xplMsgItem ( string const& _name );
+    XplMsgItem ( string const& _name );
 
-    /**
-     * Destructor.
-     */
-    ~xplMsgItem() {}
 
     /**
      * Gets the name of this item.
@@ -129,13 +129,20 @@ public:
         m_values.clear();
     }
 
+protected:
+    /**
+     * Destructor.
+     */
+    ~XplMsgItem() {}
+    
 private:
     string				m_name;
     vector<string>		m_values;
 
-}; // class xplMsgItem
+    
+}; // class XplMsgItem
 
 } // namespace xpl
 
-#endif // _xplMsgItem_H
+#endif // _XplMsgItem_H
 

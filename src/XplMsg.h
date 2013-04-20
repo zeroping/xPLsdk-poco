@@ -1,6 +1,6 @@
 /***************************************************************************
 ****																	****
-****	xplMsg.h														****
+****	XplMsg.h														****
 ****																	****
 ****	Classes for parsing and creating xpl Messages					****
 ****																	****
@@ -31,8 +31,8 @@
 ****																	****
 ***************************************************************************/
 
-#ifndef _xplMsg_H
-#define _xplMsg_H
+#ifndef _XplMsg_H
+#define _XplMsg_H
 
 #pragma once
 
@@ -42,11 +42,12 @@
 
 #include <string>
 #include <vector>
-#include "xplCore.h"
+#include "XplCore.h"
 #include "xplRef.h"
-#include "xplMsgItem.h"
+#include "XplMsgItem.h"
+#include "Poco/AutoPtr.h"
 #include "Poco/RefCountedObject.h"
-
+#include <exception>
 using namespace Poco;
 
 
@@ -54,63 +55,79 @@ namespace xpl
 {
 
 /**
+* @brief This is the exception you get when an xPL message object can't be parsed
+**/
+class XplMsgParseException : public std::runtime_error
+{
+public:
+    XplMsgParseException(const std::string& msg) 
+    : std::runtime_error(msg)
+    { }
+};
+    
+    
+/**
  * Represents an xPL message.
- * The xplMsg class encapsulates all the parameters that make up an xPL message.
+ * The XplMsg class encapsulates all the parameters that make up an xPL message.
  * It provides a simple interface for creating and manipulating xPL messages,
  * freeing the user from the burden of parsing and formatting the raw message
  * data.
  * <p>
- * There are two ways to create an xplMsg object, both via static Create methods.
+ * There are two ways to create an XplMsg object, both via static Create methods.
  * The first method creates a message from a buffer containing raw xPL message
  * data as it would be received from another xPL application over the network.
- * This approach will be most commonly used internally by the xplDevice class
- * when it receives a message, but it could also be used to build an xplMsg from
+ * This approach will be most commonly used internally by the XplDevice class
+ * when it receives a message, but it could also be used to build an XplMsg from
  * a string of data created by sprintf, for example.
  * <p>
  * The second method creates a skeleton xPL message containing a header and
  * schema but with no name=value pairs in the message body.  These values are
- * added individually through subsequent calls to xplMsg::AddValue.
+ * added individually through subsequent calls to XplMsg::AddValue.
  * <p>
  * Once created, sending the message is a simple matter of passing it to the
- * xplDevice::SendMessage method
+ * XplDevice::SendMessage method
  */
-class xplMsg: public RefCountedObject
+class XplMsg: public RefCountedObject
 {
 public:
 
-//     xplMsg::xplMsg();
+//     XplMsg::XplMsg();
 
-    xplMsg (
+    XplMsg (
         string const& _type,
         string const& _source,
         string const& _target,
         string const& _schemaClass,
         string const& _schemaType
     );
-
-    xplMsg ( string str );
+    
+    /**
+     * @brief Tries to parse the sting into an XplMsg
+     * @return :XplMsgParseException
+     **/
+    XplMsg ( string str );
 
 
 //     /**
-// 	 * Creates an xplMsg.
-// 	 * Creates an xplMsg object from raw message data, exactly as
+// 	 * Creates an XplMsg.
+// 	 * Creates an XplMsg object from raw message data, exactly as
 // 	 * would be sent/received over the network.  It also allows the creation of
-// 	 * an xplMsg object from a char string. For example, sprintf could be used
-// 	 * to assemble the raw message, which would then be converted to an xplMsg
+// 	 * an XplMsg object from a char string. For example, sprintf could be used
+// 	 * to assemble the raw message, which would then be converted to an XplMsg
 // 	 * object by a call to this method.
 // 	 * @param _pBuffer pointer to the buffer containing the raw message data.
 // 	 * @return If the buffer contained valid xPL message data, this method returns
-// 	 * a pointer to a new xplMsg object, otherwise NULL is returned.  The caller
-// 	 * is responsible for deleting any return object through a call to xplMsg::Release.
+// 	 * a pointer to a new XplMsg object, otherwise NULL is returned.  The caller
+// 	 * is responsible for deleting any return object through a call to XplMsg::Release.
 // 	 * @see Destroy, GetAsRawData
 // 	 */
-// 	static xplMsg* Create( int8 const* _pBuffer );
+// 	static XplMsg* Create( int8 const* _pBuffer );
 //
 //     /**
-// 	 * Creates an xplMsg.
+// 	 * Creates an XplMsg.
 // 	 * Creates a skeleton xPL message.  Once created, the individual name=value pairs
 // 	 * that make up the message body are added through successive calls to
-// 	 * xplMsg::AddValue.
+// 	 * XplMsg::AddValue.
 // 	 * @param _type  message type.  Must be one of "xpl-cmnd", "xpl-trig" or "xpl-stat".
 // 	 * @param _source message sender.  Complete ID of the sending application
 // 	 * (in the form vendor-device.instance).
@@ -120,12 +137,12 @@ public:
 // 	 * schema (for example, the "x10" in "x10.basic").
 // 	 * @param _schemaType message schema type.  Second part of the xPL message
 // 	 * schema (for example, the "basic" in "x10.basic").
-// 	 * @return A new xplMsg object, if the parameters are all valid.  Otherwise
+// 	 * @return A new XplMsg object, if the parameters are all valid.  Otherwise
 // 	 * the method returns NULL.  The caller is responsible for deleting any returned
-// 	 * object through a call to xplMsg::Release.
+// 	 * object through a call to XplMsg::Release.
 // 	 * @see Destroy
 // 	 */
-// 	static xplMsg* Create( string const& _type, string const& _source, string const& _target, string const& _schemaClass, string const& _schemaType );
+// 	static XplMsg* Create( string const& _type, string const& _source, string const& _target, string const& _schemaClass, string const& _schemaType );
 
     /**
      * Adds a new name=value pair to the message body.
@@ -191,7 +208,7 @@ public:
      * @param _name name of the item for which we wish to obtain the value.
      * @param _index the value index.  Optional parameter used when the name has more
      * than one value associated with it (as with filters and groups, for example).
-     * For a more detailed description of how the indexing works, @see xplMsg::SetValue.
+     * For a more detailed description of how the indexing works, @see XplMsg::SetValue.
      * Defaults to zero.
      * @return A string containing the value from the specified name=value pair.
      * @see AddValue, SetValue, GetMsgItem.
@@ -203,7 +220,7 @@ public:
      * @param _name name of the item for which we wish to obtain the value.
      * @param _index the value index.  Optional parameter used when the name has more
      * than one value associated with it (as with filters and groups, for example).
-     * For a more detailed description of how the indexing works, @see xplMsg::SetValue.
+     * For a more detailed description of how the indexing works, @see XplMsg::SetValue.
      * Defaults to zero.
      * @return An int containing the value from the specified name=value pair.  If the value does
      * not convert to an int, then -1 is returned.
@@ -223,8 +240,8 @@ public:
     string const GetCompleteValue ( string const& _name, char const _delimiter = ',' ) const;
 
     /**
-     * Gets the number of xplMsgItems in the message.
-     * @return The number of xplMsgItems contained in the message.
+     * Gets the number of XplMsgItems in the message.
+     * @return The number of XplMsgItems contained in the message.
      * @see GetMsgItem.
      */
     uint32 GetNumMsgItems() const
@@ -233,22 +250,22 @@ public:
     }
 
     /**
-     * Gets an xplMsgItem.
-     * Gets a pointer to the xplMsgItem object that stores the array of values for the named item.
+     * Gets an XplMsgItem.
+     * Gets a pointer to the XplMsgItem object that stores the array of values for the named item.
      * @param _name name of the item for which we wish to retrieve the value(s).
-     * @return A pointer to the xplMsgItem object, or NULL if the named item does not exist.
+     * @return A pointer to the XplMsgItem object, or NULL if the named item does not exist.
      * @see AddValue, GetValue, SetValue.
      */
-    xplMsgItem const* GetMsgItem ( string const& _name ) const;
+    AutoPtr<XplMsgItem>  GetMsgItem ( string const& _name ) const;
 
     /**
-     * Gets an xplMsgItem.
-     * Gets a pointer to the xplMsgItem by index.
+     * Gets an XplMsgItem.
+     * Gets a pointer to the XplMsgItem by index.
      * @param _index index of the item for which we wish to retrieve the value(s).
-     * @return A pointer to the xplMsgItem object, or NULL if the index is out of range.
+     * @return A pointer to the XplMsgItem object, or NULL if the index is out of range.
      * @see AddValue, GetValue, SetValue.
      */
-    xplMsgItem const* GetMsgItem ( uint32 const _index ) const;
+    AutoPtr< XplMsgItem > GetMsgItem ( uint32 const _index ) const;
 
     /**
      * Gets the message in it's raw data form.
@@ -396,7 +413,7 @@ public:
      */
     bool SetSchemaType ( string const& _schemaType );
 
-    bool operator == ( xplMsg const& _rhs );
+    bool operator == ( XplMsg const& _rhs );
 
     // String constants for various pieces of an xPL message
     static string const c_xplCmnd;
@@ -410,8 +427,8 @@ public:
     static string const c_xplTargetAll;
 
 private:
-    xplMsg();
-    ~xplMsg();
+    XplMsg();
+    ~XplMsg();
 
     /**
      * Helper method for extracting a name=value pair from a string.
@@ -443,7 +460,7 @@ private:
     // Body elements
     string						m_schemaClass;
     string						m_schemaType;
-    vector<xplMsgItem*>			m_msgItems;
+    vector<AutoPtr<XplMsgItem> >			m_msgItems;
 
     // Raw data
     string						m_raw;
@@ -451,9 +468,9 @@ private:
     // Reference counting
     uint32						m_refCount;
 
-}; // class xplMsg
+}; // class XplMsg
 
 } // namespace xpl
 
-#endif // _xplMsg_H
+#endif // _XplMsg_H
 

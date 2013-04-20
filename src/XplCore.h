@@ -1,6 +1,6 @@
 /***************************************************************************
 ****																	****
-****	xplCore.h														****
+****	XplCore.h														****
 ****																	****
 ****	Basic types and preprocessor directives							****
 ****																	****
@@ -31,8 +31,8 @@
 ****																	****
 ***************************************************************************/
 
-#ifndef XPLCORE_H
-#define XPLCORE_H
+#ifndef XplCore_H
+#define XplCore_H
 
 #include <assert.h>
 #include <string>
@@ -134,4 +134,4 @@ namespace xpl
 #endif
 
 
-#endif // XPLCORE_H
+#endif // XplCore_H

@@ -1,6 +1,6 @@
 /***************************************************************************
 ****																	****
-****	xplConfigItem.h													****
+****	XplConfigItem.h													****
 ****																	****
 ****	Container for xpl device configuration data						****
 ****																	****
@@ -31,8 +31,8 @@
 ****																	****
 ***************************************************************************/
 
-#ifndef _XPLCONFIGITEM_H
-#define _XPLCONFIGITEM_H
+#ifndef _XplConfigItem_H
+#define _XplConfigItem_H
 
 #pragma once
 
@@ -41,10 +41,12 @@
 //#include <windows.h>  - not in linux
 #include <string>
 #include <vector>
-#include "xplCore.h"
-#include "xplDevice.h"
-#include "xplMsgItem.h"
+#include "XplCore.h"
+#include "XplDevice.h"
+#include "XplMsgItem.h"
+#include "Poco/RefCountedObject.h"
 
+using namespace Poco;
 namespace xpl
 {
 
@@ -54,23 +56,23 @@ namespace xpl
  * changed by the user in xPLHal.  A good example is a com port index.  It
  * is impossible for an application to reliably detect which com port a piece
  * of hardware is attached to, so it becomes necessary to let the user set
- * the value.  By exposing the com port index via an xplConfigItem, this
+ * the value.  By exposing the com port index via an XplConfigItem, this
  * becomes possible.
  * <p>
- * Once an xplConfigItem has been created, its default value (or values - the
+ * Once an XplConfigItem has been created, its default value (or values - the
  * item can be an array) must be set through calls to AddValue.  The
- * xplConfigItem is then added to the xplDevice by calling xplDevice::AddConfigItem.
- * Once an xplConfigItem has been added to the xplDevice, it will automatically
+ * XplConfigItem is then added to the XplDevice by calling XplDevice::AddConfigItem.
+ * Once an XplConfigItem has been added to the XplDevice, it will automatically
  * be presented to the user in xPLHal.  Its value will also be saved to the
- * registry or config file (depending on how the xplDevice was defined), and it
+ * registry or config file (depending on how the XplDevice was defined), and it
  * will be restored when the application is next started.
  */
-class xplConfigItem: public xplMsgItem
+class XplConfigItem: public XplMsgItem
 {
 public:
     /**
      * Constructor.
-     * Creates a new, empty xplConfigItem, containing no values.  These must be
+     * Creates a new, empty XplConfigItem, containing no values.  These must be
      * added through calls to AddValue.
      * @param _name unique name identifying the config item.  This name will be
      * displayed in the xPLHal user interface.
@@ -86,17 +88,10 @@ public:
      * of that array is specified here, otherwise it should be set to one.
      * @see AddValue.
      */
-    xplConfigItem ( string const& _name, string const& _type, unsigned int const _maxValues = 1 ) :
-        xplMsgItem ( _name ),
+    XplConfigItem ( string const& _name, string const& _type, unsigned int const _maxValues = 1 ) :
+        XplMsgItem ( _name ),
         m_type ( _type ),
         m_maxValues ( _maxValues )
-    {
-    }
-
-    /**
-     * Destructor
-     */
-    ~xplConfigItem()
     {
     }
 
@@ -135,9 +130,17 @@ public:
     {
         return ( m_maxValues );
     }
-
+protected:
+    /**
+     * Destructor
+     */
+    ~XplConfigItem()
+    {
+        cout << "destroying config item\n";
+    }
+    
 private:
-    friend class xplDevice;
+    friend class XplDevice;
 
 // 	/**
 // 	 * Reads the config item's values from a file.
@@ -174,5 +177,5 @@ private:
 
 } // namespace xpl
 
-#endif // _xplConfigItem_H
+#endif // _XplConfigItem_H
 
