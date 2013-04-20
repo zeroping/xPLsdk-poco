@@ -40,11 +40,18 @@
 #include "XplMsg.h"
 #include "xplFilter.h"
 #include "XplConfigItem.h"
+#include <../../src/heeks/skeleton/prim.h>
 
 #include <strings.h>
 #include <Poco/String.h>
+#include <Poco/Util/PropertyFileConfiguration.h>
+#include <Poco/Path.h>
+#include <Poco/SAX/SAXException.h>
 
 using namespace xpl;
+using namespace Poco;
+using Poco::Util::PropertyFileConfiguration;
+using Poco::Util::AbstractConfiguration;
 using Poco::toLower;
 
 string const XplDevice::c_xplGroup = "xpl-group";
@@ -92,8 +99,6 @@ XplDevice::XplDevice
     m_vendorId = toLower ( _vendorId );
     m_deviceId = toLower ( _deviceId );
     m_instanceId = "default";
-
-    
     
     SetCompleteId();
 
@@ -171,6 +176,29 @@ bool XplDevice::Init()
 }
 
 
+Poco::Path XplDevice::GetConfigFileLocation() {
+    Poco::Path p ( Poco::Path::home() );
+    p.pushDirectory ( ".xPL" );
+    File test = File(p);
+    if (!test.exists()){
+        poco_debug ( devLog, "dir doesn't exist:  " + p.toString() );
+        test.createDirectory();
+    }
+    p.pushDirectory ( "xPLSDK_configs" );
+    test = File(p);
+    if (!test.exists()){
+        poco_debug ( devLog, "dir doesn't exist:  " + p.toString() );
+        test.createDirectory();
+    }
+    p.setFileName ( GetCompleteId() + ".conf" );
+    test = File(p);
+    if (!test.exists()){
+        poco_debug ( devLog, "file doesn't exist:  " + p.toString() );
+        test.createFile();
+    }
+    return p;
+}
+
 
 /***************************************************************************
 ****																	****
@@ -180,9 +208,82 @@ bool XplDevice::Init()
 
 void XplDevice::LoadConfig()
 {
-    
+
     poco_trace ( devLog, "loading config for  "  + GetCompleteId() );
-// 	m_bConfigRequired = true;
+    
+    Poco::Path p = GetConfigFileLocation();
+
+    PropertyFileConfiguration* cfgp;
+    try{
+        cfgp =  new PropertyFileConfiguration(p.toString());
+    } catch (Poco::FileException e) {
+        poco_debug ( devLog, "Failed to parse  " + p.toString() );
+        cfgp = (new PropertyFileConfiguration());
+    }
+    m_configStore = cfgp;
+        
+    m_bConfigRequired = true;
+  
+    
+    AbstractConfiguration::Keys itemKeys;
+    m_configStore->keys(itemKeys);
+    for ( AbstractConfiguration::Keys::iterator iter = itemKeys.begin(); iter != itemKeys.end(); ++iter )
+    {
+        poco_debug ( devLog, " item: " + *iter );
+    }
+    
+    
+    
+    if ( m_configStore->hasProperty ( "instanceId" ) )
+    {
+        //looks like we really have a config
+        poco_debug ( devLog, "found instance ID" );
+        m_bConfigRequired = false;
+        SetInstanceId ( m_configStore->getString ( "instanceId" ) );
+        
+        if ( m_configStore->hasProperty ( "configItems" )) {
+            AbstractConfiguration::Keys confItemKeys;
+            m_configStore->keys("configItems", confItemKeys);
+            poco_debug ( devLog, "found " + NumberFormatter::format(confItemKeys.size()) + "keys" );
+            for ( AbstractConfiguration::Keys::iterator iter = confItemKeys.begin(); iter != confItemKeys.end(); ++iter )
+            {
+                if(m_configStore->hasProperty ( "configItems."+(*iter)+".numValues" )
+                    && m_configStore->hasProperty ( "configItems."+(*iter)+".type" )
+                ){
+                    // we have a config item entry with the required parts, but should only restore it if it matches a programatically-added configitem.
+                    AutoPtr<XplConfigItem> cfgItem = GetConfigItem(*iter);
+                    if (cfgItem.get()== NULL){
+                        poco_debug ( devLog, "Found a config item for name " + *iter + ", but no programatically-created config item exists with that name" );
+                        continue;
+                    }
+                    
+                    poco_debug ( devLog, "Config item: " + *iter );
+                    int numValues = m_configStore->getInt ( "configItems."+(*iter)+".numValues");
+                    
+                    for (int i= 0; i<numValues; i++) {
+                        poco_debug ( devLog, "Value " );
+                        string valname = "configItems."+(*iter)+".value" + NumberFormatter::format(i);
+                        if(m_configStore->hasProperty (valname) ){
+                            poco_debug ( devLog, "val: " +  m_configStore->getString ( valname ));
+                            cfgItem->AddValue(m_configStore->getString ( valname ));
+                        }
+                    }
+                }
+//                 m_configItems.insert
+                //        XplConfigItem* pItem = m_configItems[i];
+                //        pItem->RegistryLoad( hKey );
+//                 if ( *iter == _name )
+//                 {
+//                     // Found
+//                     m_configItems.erase ( iter );
+//                     return true;
+//                 }
+            }
+            
+        }
+    }
+    poco_debug ( devLog, "should be banana: " + GetConfigItem("test")->GetValue());
+  
 //
 // 	if( m_bConfigInRegistry )
 // 	{
@@ -290,16 +391,16 @@ void XplDevice::LoadConfig()
 // 	}
 //
 // 	// If the config data was read ok, then configure this device.
-// 	if( !m_bConfigRequired )
-// 	{
-//         // Configure the XplDevice
-//         Configure();
-// 		m_bConfigRequired = false;
-//
-//         // Set the config event
-// 		//SetEvent( m_hConfig );
+	if( !m_bConfigRequired )
+	{
+    // Configure the XplDevice
+    Configure();
+    m_bConfigRequired = false;
+
+        // Set the config event
+		//SetEvent( m_hConfig );
 //     m_hConfig.notifyAsync(NULL, m_hConfig);
-// 	}
+	}
 }
 
 
@@ -309,9 +410,14 @@ void XplDevice::LoadConfig()
 ****																	****
 ***************************************************************************/
 
-void XplDevice::SaveConfig() const
+void XplDevice::SaveConfig()
 {
-    poco_debug ( devLog, "saving config for  " + GetCompleteId() );
+    
+    
+    Poco::Path p = GetConfigFileLocation();
+    poco_debug ( devLog, "saving config for  " + GetCompleteId() + " to " + p.toString());
+    
+    
 // 	if( m_bConfigInRegistry )
 // 	{
 // 		// Attempt to open the registry key for this
@@ -322,7 +428,11 @@ void XplDevice::SaveConfig() const
 // 		UnicodeString device( GetDeviceId().c_str() );
 // #else
 // 		string vendor = GetVendorId();
+    m_configStore->setString("vendorId", GetVendorId());
 // 		string device = GetDeviceId();
+    m_configStore->setString("deviceId", GetDeviceId());
+    
+    m_configStore->setString("instanceId", GetInstanceId());
 // #endif
 // 		_stprintf( subKey, TEXT("SOFTWARE\\xPL\\%s\\%s"), vendor.c_str(), device.c_str() );
 //
@@ -356,6 +466,21 @@ void XplDevice::SaveConfig() const
 // 				XplConfigItem* pItem = m_configItems[i];
 // 				pItem->RegistrySave( hKey );
 // 			}
+    
+    if(m_configItems.size()) {
+        m_configStore->setInt("configItems",m_configItems.size());
+        for ( vector<AutoPtr<XplConfigItem> >::iterator iter = m_configItems.begin(); iter != m_configItems.end(); ++iter )
+        {
+            poco_debug ( devLog, "saving config item  " + (*iter)->GetName());
+            m_configStore->setString("configItems." + (*iter)->GetName(), ""  );
+            m_configStore->setString("configItems." + (*iter)->GetName() + ".numValues" , NumberFormatter::format((*iter)->GetNumValues())  );
+            
+            for (int vindex=0; vindex<(*iter)->GetNumValues(); vindex++) {
+                m_configStore->setString("configItems." + (*iter)->GetName() + ".value" + NumberFormatter::format(vindex) , (*iter)->GetValue(vindex)  );
+            }
+        }
+    }
+    
 //
 // 			// Close the key
 // 			RegCloseKey( hKey );
@@ -393,6 +518,10 @@ void XplDevice::SaveConfig() const
 // 			CloseHandle( hFile );
 // 		}
 // 	}
+    
+    m_configStore->save(p.toString());
+    poco_debug ( devLog, "saved to " + p.toString());
+    
 }
 
 
@@ -466,7 +595,7 @@ bool XplDevice::AddConfigItem
     AutoPtr<XplConfigItem> _pItem
 )
 {
-    poco_debug ( devLog, "DAdding config item to "  + GetCompleteId() + ": " + _pItem->GetName() + " = " + _pItem->GetValue());
+    poco_debug ( devLog, "Adding config item to "  + GetCompleteId() + ": " + _pItem->GetName() + " = " + _pItem->GetValue());
     
     // Config items may only be added before XplDevice::Init() is called
     if ( m_bInitialised )
@@ -482,7 +611,6 @@ bool XplDevice::AddConfigItem
         assert ( 0 );
         return false;
     }
-
     // Add the item to the list
     m_configItems.push_back ( _pItem );
     return true;
@@ -506,12 +634,10 @@ bool XplDevice::RemoveConfigItem
         if ( ( *iter )->GetName() == _name )
         {
             // Found
-//             delete *iter;
             m_configItems.erase ( iter );
             return true;
         }
     }
-
     // Item not found
     return false;
 }
@@ -528,6 +654,7 @@ AutoPtr<XplConfigItem> XplDevice::GetConfigItem
     string const& _name
 ) const
 {
+    poco_debug ( devLog, "get config item for "  + GetCompleteId() + ": " + _name );
     for ( vector< AutoPtr<XplConfigItem> >::const_iterator iter = m_configItems.begin(); iter != m_configItems.end(); ++iter )
     {
         if ( ( *iter )->GetName() == _name )
@@ -583,6 +710,7 @@ bool XplDevice::IsMsgForThisApp
     // Is the message for all devices
     if ( target != string ( "*" ) )
     {
+//         poco_debug ( devLog, "target compare " + target + " " + m_completeId );
         // Is the message for this device
         if ( target != m_completeId )
         {
@@ -710,6 +838,7 @@ bool XplDevice::HandleMsgForUs
     {
         if ( "config" == _pMsg->GetSchemaClass() )
         {
+            poco_debug ( devLog, "config message");
             if ( "current" == _pMsg->GetSchemaType() )
             {
                 // Config values request
@@ -890,6 +1019,7 @@ void XplDevice::SendConfigCurrent() const
 
         // Call XplComms::TxMsg directly, since we may be in config mode
         // and XplDevice::SendMessage would block it.
+        poco_debug ( devLog, "sending config list" );
         m_pComms->TxMsg ( *pMsg );
 
     }
@@ -1039,6 +1169,7 @@ void XplDevice::run ( void )
 void XplDevice::HandleRx ( MessageRxNotification* mNot )
 {
 //         cout << "device: start handle RX in thread " << Thread::currentTid() <<"\n";
+//     poco_trace ( devLog, "packet rx" );
     AutoPtr<XplMsg> pMsg = mNot->message;
 //    Process any xpl message received
     if ( NULL != pMsg )

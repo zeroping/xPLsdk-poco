@@ -98,6 +98,8 @@ public:
      */
     string const GetValue ( const uint32 _index = 0 ) const;
 
+    vector<string> const GetValues () const;
+    
     /**
      * Adds a value to this item.
      * @param _value the value to add to this item.

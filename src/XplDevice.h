@@ -49,6 +49,7 @@
 #include <Poco/Notification.h>
 #include <Poco/Observer.h>
 #include <Poco/TaskManager.h>
+#include <Poco/Util/PropertyFileConfiguration.h>
 #include <iostream>
 #include <fstream>
 #include "XplCore.h"
@@ -351,6 +352,14 @@ public:
 
 
 private:
+    
+    
+    /**
+     * @brief gets, and if needed, creates directories for, the location to save the device's config in.     
+     * @return
+     **/
+    Poco::Path GetConfigFileLocation();
+    
     /**
      * Handles the xPL configuration messages.
      * Registered as a message callback during Init.
@@ -401,7 +410,7 @@ private:
      * depends on m_bConfigInRegistry, whcih is set during Create
      * @see LoadConfig, Create
      */
-    void SaveConfig() const;
+    void SaveConfig() ;
 
     /**
      * Sends a config.list xPL message.
@@ -460,6 +469,7 @@ private:
 
     Poco::Thread					m_hThread;					// Handle to the XplDevice thread
     Poco::Event*          m_hRxInterrupt;       // Event that is signalled to interrupt the device thread waiting for messages.
+    //     Poco::Event*          m_hConfig;       // Event that is signalled when the device is configured
     Poco::Mutex		m_criticalSection;			// Used to serialise access to m_txBuffer.
 
     bool					m_bExitThread;				// If true, the device thread should exit.
@@ -477,6 +487,8 @@ private:
     static uint32 const		c_rapidHeartbeatTimeout;		// two minutes, after which the rate drops to
     static uint32 const		c_rapidHeartbeatSlowInterval;	// once every thirty seconds.
 
+    AutoPtr<Util::PropertyFileConfiguration> m_configStore; //a place to store our config values;
+    
     Logger& devLog;
 
 };

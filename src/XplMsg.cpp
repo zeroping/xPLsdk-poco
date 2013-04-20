@@ -627,8 +627,8 @@ bool XplMsg::SetTarget
         assert ( 0 );
         return false;
     }
-    m_source.device = toLower(device);
-    m_source.instance = toLower(instance);
+    m_target.device = toLower(device);
+    m_target.instance = toLower(instance);
     return true;
 }
 

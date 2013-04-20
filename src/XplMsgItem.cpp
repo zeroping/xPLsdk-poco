@@ -131,3 +131,7 @@ string const XplMsgItem::GetValue
     return ( m_values[_index] );
 }
 
+vector<string> const XplMsgItem::GetValues () const
+{
+    m_values;
+}
