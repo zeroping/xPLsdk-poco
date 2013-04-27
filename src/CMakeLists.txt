@@ -26,7 +26,7 @@ cmake_minimum_required(VERSION 2.6)
 
 add_library(xplsdk  XplComms.cpp XplDevice.cpp XplMsg.cpp XplStringUtils.cpp  XplConfigItem.cpp xplFilter.cpp XplMsgItem.cpp XplUDP.cpp)
 
-option(DEBUGPRINTS "Prints a lot of debug prints" 1)
+option(DEBUGPRINTS "enable all of the debug and trace messages" 0)
 if(DEBUGPRINTS)
     set_target_properties(xplsdk PROPERTIES COMPILE_DEFINITIONS "_DEBUG=1")
 endif()

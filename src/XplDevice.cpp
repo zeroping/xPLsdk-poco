@@ -247,149 +247,29 @@ void XplDevice::LoadConfig()
             poco_debug ( devLog, "found " + NumberFormatter::format(confItemKeys.size()) + "keys" );
             for ( AbstractConfiguration::Keys::iterator iter = confItemKeys.begin(); iter != confItemKeys.end(); ++iter )
             {
-                if(m_configStore->hasProperty ( "configItems."+(*iter)+".numValues" )
-                    && m_configStore->hasProperty ( "configItems."+(*iter)+".type" )
-                ){
+                if(m_configStore->hasProperty ( "configItems."+(*iter)+".numValues" )){
                     // we have a config item entry with the required parts, but should only restore it if it matches a programatically-added configitem.
                     AutoPtr<XplConfigItem> cfgItem = GetConfigItem(*iter);
                     if (cfgItem.get()== NULL){
-                        poco_debug ( devLog, "Found a config item for name " + *iter + ", but no programatically-created config item exists with that name" );
+                        poco_warning ( devLog, "Found a config item for name " + *iter + ", but no programatically-created config item exists with that name" );
                         continue;
                     }
-                    
-                    poco_debug ( devLog, "Config item: " + *iter );
+                    poco_trace ( devLog, "Config item: " + *iter );
                     int numValues = m_configStore->getInt ( "configItems."+(*iter)+".numValues");
                     
                     for (int i= 0; i<numValues; i++) {
-                        poco_debug ( devLog, "Value " );
+                        poco_trace( devLog, "Value " );
                         string valname = "configItems."+(*iter)+".value" + NumberFormatter::format(i);
                         if(m_configStore->hasProperty (valname) ){
-                            poco_debug ( devLog, "val: " +  m_configStore->getString ( valname ));
                             cfgItem->AddValue(m_configStore->getString ( valname ));
                         }
                     }
                 }
-//                 m_configItems.insert
-                //        XplConfigItem* pItem = m_configItems[i];
-                //        pItem->RegistryLoad( hKey );
-//                 if ( *iter == _name )
-//                 {
-//                     // Found
-//                     m_configItems.erase ( iter );
-//                     return true;
-//                 }
             }
             
         }
     }
-    poco_debug ( devLog, "should be banana: " + GetConfigItem("test")->GetValue());
   
-//
-// 	if( m_bConfigInRegistry )
-// 	{
-// 		// Read from the registry
-// 		char subKey[256];
-// #ifdef UNICODE
-// 		UnicodeString vendor( GetVendorId().c_str() );
-// 		UnicodeString device( GetDeviceId().c_str() );
-// #else
-// 		string vendor = GetVendorId();
-// 		string device = GetDeviceId();
-// #endif
-// 		_stprintf( subKey, TEXT("SOFTWARE\\xPL\\%s\\%s"), vendor.c_str(), device.c_str() );
-// 		HKEY hKey;
-// 		LONG res = RegOpenKeyEx( HKEY_LOCAL_MACHINE, subKey, 0, KEY_READ, &hKey );
-//
-// 		if( ERROR_SUCCESS == res )
-// 		{
-// 			// Read the version number
-// 			 bufferSize;
-//     		if( ERROR_SUCCESS == RegQueryValueEx( hKey, TEXT("Version"), NULL, NULL, NULL, &bufferSize ) )
-// 			{
-// 				// Read the registry data into a buffer
-// 				int8* pBuffer = new int8[bufferSize];
-// 				 type;
-// 				if( ERROR_SUCCESS == RegQueryValueEx( hKey, TEXT("Version"), NULL, &type, (unsigned char*)pBuffer, &bufferSize ) )
-// 				{
-// #ifdef UNICODE
-// 					int8* pNewBuffer = new int8[bufferSize];
-// 					WideCharToMultiByte( CP_ACP, 0, (WCHAR*)pBuffer, -1, pNewBuffer, bufferSize, NULL, NULL );
-// 					delete [] pBuffer;
-// 					pBuffer = pNewBuffer;
-// #endif
-// 					if( ( REG_SZ == type ) && ( !stricmp( pBuffer, m_version.c_str() ) ) )
-// 					{
-// 						// Version number matches, so we don't need to go into configuration mode
-// 						m_bConfigRequired = false;
-// 					}
-// 				}
-// 			}
-//
-// 			// Read the config values from the key
-// 			for( uint32 i=0; i<m_configItems.size(); ++i )
-// 			{
-// 				XplConfigItem* pItem = m_configItems[i];
-// 				pItem->RegistryLoad( hKey );
-// 			}
-//
-// 			// Close the key
-// 			RegCloseKey( hKey );
-// 		}
-// 	}
-// 	else
-// 	{
-// 		Read from a file
-// 		string configFilename = GetVendorId();
-// 		configFilename += "_";
-// 		configFilename += GetDeviceId();
-// 		configFilename += ".cfg";
-//
-// #ifdef UNICODE
-// 		UnicodeString unicodeFilename = UnicodeString( configFilename.c_str() );
-// 		HANDLE hFile = CreateFile( unicodeFilename.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, 0 );
-// #else
-// 		//HANDLE hFile = CreateFile( configFilename.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, 0 );
-//     Poco::File hFile = File(configFilename.c_str());
-//     if (!hFile.exists()){
-//         hFile.createFile();
-//     }
-// #endif
-//
-// 		//if( INVALID_HANDLE_VALUE != hFile )
-// 		if (hFile.canWrite());
-// 		{
-// 			// Read the version number
-// 			 int bufferSize = 0;
-// 			 int bytesRead;
-// 			//ReadFile( hFile, &bufferSize, sizeof(bufferSize), &bytesRead, NULL );
-//        ifstream myhfile;
-//        myhfile.open(hFile.path().c_str());
-//        myhfile.read( (char*)(&bufferSize), sizeof(bufferSize));
-//         //TODO check read size
-//
-// 			int8* pBuffer = new int8[bufferSize];
-// 			//ReadFile( hFile, pBuffer, bufferSize, &bytesRead, NULL );
-//       myhfile.read( pBuffer, bufferSize);
-//
-// 			//if( !stricmp( pBuffer, m_version.c_str() ) )
-//       if( !strcasecmp( pBuffer, m_version.c_str() ) )
-// 			{
-// 				// Version number matches, so we don't need to go into configuration mode
-// 				m_bConfigRequired = false;
-// 			}
-//
-// 			// Read the config items
-// 			for( uint32 i=0; i<m_configItems.size(); ++i )
-// 			{
-// 				XplConfigItem* pItem = m_configItems[i];
-//         pItem->FileLoad( myhfile );
-// 			}
-//
-// 			//CloseHandle( hFile );
-//       myhfile.close();
-// // 		}
-// 	}
-//
 // 	// If the config data was read ok, then configure this device.
 	if( !m_bConfigRequired )
 	{
@@ -416,56 +296,11 @@ void XplDevice::SaveConfig()
     
     Poco::Path p = GetConfigFileLocation();
     poco_debug ( devLog, "saving config for  " + GetCompleteId() + " to " + p.toString());
-    
-    
-// 	if( m_bConfigInRegistry )
-// 	{
-// 		// Attempt to open the registry key for this
-// 		// device, or create it if it doesn't yet exist.
-// 		_TCHAR subKey[256];
-// #ifdef UNICODE
-// 		UnicodeString vendor( GetVendorId().c_str() );
-// 		UnicodeString device( GetDeviceId().c_str() );
-// #else
-// 		string vendor = GetVendorId();
+
     m_configStore->setString("vendorId", GetVendorId());
-// 		string device = GetDeviceId();
     m_configStore->setString("deviceId", GetDeviceId());
-    
     m_configStore->setString("instanceId", GetInstanceId());
-// #endif
-// 		_stprintf( subKey, TEXT("SOFTWARE\\xPL\\%s\\%s"), vendor.c_str(), device.c_str() );
-//
-// 		HKEY hKey;
-// 		 disposition;
-// 		LONG res = RegCreateKeyEx( HKEY_LOCAL_MACHINE,
-// 								   subKey,
-// 								   0,
-// 								   NULL,
-// 								   REG_OPTION_NON_VOLATILE,
-// 								   KEY_WRITE,
-// 								   NULL,
-// 								   &hKey,
-// 								   &disposition );
-//
-// 		if( ERROR_SUCCESS == res )
-// 		{
-// 			// Store the version number
-// 			 length = ()(m_version.size() + 1);
-// #ifdef UNICODE
-// 			UnicodeString version( m_version.c_str() );
-// 			length <<= 1;
-// #else
-// 			string version = m_version;
-// #endif
-// 			RegSetValueEx( hKey, TEXT("Version"), 0, REG_SZ, (uint8*)version.c_str(), length );
-//
-// 			// Store the config values in the key
-// 			for( uint32 i=0; i<m_configItems.size(); ++i )
-// 			{
-// 				XplConfigItem* pItem = m_configItems[i];
-// 				pItem->RegistrySave( hKey );
-// 			}
+
     
     if(m_configItems.size()) {
         m_configStore->setInt("configItems",m_configItems.size());
@@ -481,43 +316,6 @@ void XplDevice::SaveConfig()
         }
     }
     
-//
-// 			// Close the key
-// 			RegCloseKey( hKey );
-// 		}
-// 	}
-// 	else
-// 	{
-// 		// Save to a file
-// 		string configFilename = GetVendorId();
-// 		configFilename += "_";
-// 		configFilename += GetDeviceId();
-// 		configFilename += ".cfg";
-//
-// #ifdef UNICODE
-// 		UnicodeString unicodeFilename = UnicodeString( configFilename.c_str() );
-// 		HANDLE hFile = CreateFile( unicodeFilename.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, 0 );
-// #else
-// 		HANDLE hFile = CreateFile( configFilename.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, 0 );
-// #endif
-//
-// 		if( INVALID_HANDLE_VALUE != hFile )
-// 		{
-// 			// Write the version number
-// 			 bufferSize = ()(m_version.size() + 1);
-// 			 bytesWritten;
-// 			WriteFile( hFile, &bufferSize, sizeof(bufferSize), &bytesWritten, NULL );
-// 			WriteFile( hFile, m_version.c_str(), bufferSize, &bytesWritten, NULL );
-//
-// 			for( uint32 i=0; i<m_configItems.size(); ++i )
-// 			{
-// 				XplConfigItem* pItem = m_configItems[i];
-// 				pItem->FileSave( hFile );
-// 			}
-//
-// 			CloseHandle( hFile );
-// 		}
-// 	}
     
     m_configStore->save(p.toString());
     poco_debug ( devLog, "saved to " + p.toString());
