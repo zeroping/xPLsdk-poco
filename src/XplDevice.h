@@ -118,20 +118,6 @@ class XplDevice : public Runnable
 public:
 
     /**
-     * Constructor.  Only to be called via the static Create method.
-     * Parameters are as described for Create.
-     * @see Create, Destroy
-     */
-    XplDevice ( string const& _vendorId, string const& _deviceId, string const& _version, bool const _configInRegistry, bool const _bFilterMsgs, XplComms* _pComms );
-
-    /**
-     * Destructor.  Only to be called via the static Destroy method.
-     * @see Destroy, Create
-     */
-    ~XplDevice();
-
-
-    /**
      * Create an XplDevice.
      * The XplDevice provides the all of the core xPL functionality for an application.
      * @param _vendorId your vendor ID.  A string containing the vendor name of the application author.
@@ -146,8 +132,6 @@ public:
      * If the version does not match the value stored in the registry or config file, the application
      * will enter config mode, requiring the user to review any new values that have been added or
      * changed since the last revision.
-     * @param _bConfigInRegistry where to store the application configuration.  If true, config items are
-     * read from the registry.  If false, those values are taken from a configuration file instead.
      * @param _bFilterMsgs whether to apply filters and to examine the message target before adding it to
      * the received message queue.  This should normally be true unless the application needs to look at
      * messages intended for other applications.
@@ -155,6 +139,16 @@ public:
      * ethernet communications, create an XplUDP object and pass it in here.
      * @return A pointer to a new XplDevice.  If an error occured during creation, the method returns
      * NULL instead.
+     */
+    XplDevice ( string const& _vendorId, string const& _deviceId, string const& _version, bool const _bFilterMsgs, XplComms* _pComms );
+
+    /**
+     * Destructor.  Only to be called via the static Destroy method.
+     * @see Destroy, Create
+     */
+    ~XplDevice();
+
+
 
     /**
      * Initialises the XplDevice.  Loads any existing configuration

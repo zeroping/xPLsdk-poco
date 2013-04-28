@@ -34,7 +34,6 @@
 #include "XplUDP.h"
 #include "XplConfigItem.h"
 #include "XplMsg.h"
-#include "EventLog.h"
 #include "Poco/Thread.h"
 #include "Poco/RunnableAdapter.h"
 
@@ -80,8 +79,8 @@ public:
     void Configure ( DeviceConfigNotification* );
     bool testRunning();
 
-    XplComms* pComms;
-    XplDevice* pDevice;
+    SharedPtr<XplComms> pComms;
+    SharedPtr<XplDevice> pDevice;
     Thread listenThread;
     Poco::Event* XplMsgEvent;
     Mutex runningMutex;
@@ -99,7 +98,7 @@ TestApp::TestApp()
     //xpl::EventLog::Create( c_appName );
 
     // Create the xPL communications object
-    pComms = XplUDP::Create ( true );
+    pComms = new XplUDP();
     if ( NULL == pComms )
     {
         cout << "error\n\n";
@@ -113,7 +112,7 @@ TestApp::TestApp()
     // Replace "device" with a suitable device name for your application - usually something
     // related to what is being xPL-enabled.  Device names can be no more than 8 characters.
     cout << "app: XplUDP created\n";
-    pDevice = XplDevice::Create ( "vendor", "device", c_version, true, true, pComms );
+    pDevice = new XplDevice( "vendor", "device", c_version , true, pComms.get() );
     if ( NULL == pDevice )
     {
         cout << "error\n\n";
@@ -157,27 +156,6 @@ TestApp::~TestApp()
     runningMutex.lock();
     running = false;
     runningMutex.unlock();
-
-
-    // Destroy the xPL Device
-    // This also deletes any config items we may have added
-    if ( pDevice )
-    {
-        cout << "app: destroying device\n";
-        XplDevice::Destroy ( pDevice );
-        pDevice = NULL;
-    }
-
-
-    // Destroy the comms object
-    if ( pComms )
-    {
-        cout << "app: destroying pComms\n";
-        XplUDP::Destroy ( pComms );
-        pComms = NULL;
-    }
-
-
 
 }
 

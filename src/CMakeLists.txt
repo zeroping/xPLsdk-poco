@@ -19,12 +19,9 @@ cmake_minimum_required(VERSION 2.6)
 #include_directories("${PROJECT_SOURCE_DIR}")
 
 
-## Target
-#set(TEST_SRCS test/ConsoleApp.cpp )
-#add_executable(xplsdk xplComms.cpp xplDevice.cpp xplMsg.cpp xplStringUtils.cpp  xplConfigItem.cpp xplFilter.cpp xplMsgItem.cpp xplUDP.cpp test/ConsoleApp.cpp)
-## disabled - RegUtils.cpp XMLUtils.cpp
 
-add_library(xplsdk  XplComms.cpp XplDevice.cpp XplMsg.cpp XplStringUtils.cpp  XplConfigItem.cpp xplFilter.cpp XplMsgItem.cpp XplUDP.cpp)
+
+add_library(xplsdk  XplComms.cpp XplDevice.cpp XplMsg.cpp XplStringUtils.cpp  XplConfigItem.cpp xplFilter.cpp XplMsgItem.cpp XplUDP.cpp test/ConsoleApp.cpp)
 
 option(DEBUGPRINTS "enable all of the debug and trace messages" 0)
 if(DEBUGPRINTS)
@@ -40,6 +37,8 @@ find_package(Threads REQUIRED)
 target_link_libraries(xplsdk ${CMAKE_THREAD_LIBS_INIT})
 
 
+include_directories ("${PROJECT_SOURCE_DIR}/test")
+add_subdirectory (test)
 
 
 

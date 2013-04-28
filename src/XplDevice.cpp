@@ -73,12 +73,10 @@ XplDevice::XplDevice
     string const& _vendorId,
     string const& _deviceId,
     string const& _version,
-    bool const _bConfigInRegistry,
     bool const _bFilterMsgs,
     XplComms* _pComms
 ) :
     m_version ( _version ),
-    m_bConfigInRegistry ( _bConfigInRegistry ),
     m_bFilterMsgs ( _bFilterMsgs ),
     m_pComms ( _pComms ),
     m_bConfigRequired ( true ),
